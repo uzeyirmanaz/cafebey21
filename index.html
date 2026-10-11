@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -770,52 +769,14 @@ const SEED=[{"c": "Konsept", "t": "Cafe Bey, dış cephe konsepti", "s": "data:i
 let GAL=SEED.slice();
 // ---- FIREBASE AYARI: Firebase Console > Proje ayarları > Uygulamalarınız > Yapılandırma'dan kopyalayıp doldurun ----
 const FB_CONFIG={
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyBAE6-Um06nfMLJBcMspo1ElZzXr7Pi4Ho",
-  authDomain: "cafebey-94d0d.firebaseapp.com",
-  databaseURL: "https://cafebey-94d0d-default-rtdb.firebaseio.com",
-  projectId: "cafebey-94d0d",
-  storageBucket: "cafebey-94d0d.firebasestorage.app",
-  messagingSenderId: "537790948033",
-  appId: "1:537790948033:web:b6abff1e401f75534e6a40",
-  measurementId: "G-W361PL0FB2"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+  apiKey:"BURAYA_API_KEY",
+  authDomain:"cafebey.firebaseapp.com",
+  databaseURL:"https://cafebey-default-rtdb.firebaseio.com",
+  projectId:"cafebey",
+  appId:"BURAYA_APP_ID"
 };
 const ADMIN_EMAIL='uzeyirmanaz3@gmail.com';
-const FB_OK=typeof firebase!=='undefined' && !/// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyBAE6-Um06nfMLJBcMspo1ElZzXr7Pi4Ho",
-  authDomain: "cafebey-94d0d.firebaseapp.com",
-  databaseURL: "https://cafebey-94d0d-default-rtdb.firebaseio.com",
-  projectId: "cafebey-94d0d",
-  storageBucket: "cafebey-94d0d.firebasestorage.app",
-  messagingSenderId: "537790948033",
-  appId: "1:537790948033:web:b6abff1e401f75534e6a40",
-  measurementId: "G-W361PL0FB2"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app););
+const FB_OK=typeof firebase!=='undefined' && !/^BURAYA/.test(FB_CONFIG.apiKey);
 let db=null, auth=null, cloudReady=false;
 const $=id=>document.getElementById(id);
 const gal=$('gal'), body=$('gBody'), lb=$('lb'), img=$('lbImg');
@@ -857,28 +818,7 @@ function setAdmin(on){ admin=on; $('gAdm').classList.toggle('show',on); $('gPw')
 async function localSource(){ const v=await idbGet(); return (Array.isArray(v)&&v.length)?v:SEED; }
 async function updImp(){ const b=$('aImp'); if(!admin||cloudReady){ b.style.display='none'; return; } const L=await localSource(); b.textContent='Mevcut '+L.length+' görseli buluta aktar'; b.style.display=''; }
 $('gM').onclick=()=>{
-  if(!FB_OK){ alert('// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyBAE6-Um06nfMLJBcMspo1ElZzXr7Pi4Ho",
-  authDomain: "cafebey-94d0d.firebaseapp.com",
-  databaseURL: "https://cafebey-94d0d-default-rtdb.firebaseio.com",
-  projectId: "cafebey-94d0d",
-  storageBucket: "cafebey-94d0d.firebasestorage.app",
-  messagingSenderId: "537790948033",
-  appId: "1:537790948033:web:b6abff1e401f75534e6a40",
-  measurementId: "G-W361PL0FB2"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);'); return; }
+  if(!FB_OK){ alert('Önce index.html içindeki FB_CONFIG bölümüne Firebase ayarlarını girin.'); return; }
   if(admin){ auth.signOut(); } else { const f=$('gPw'); f.classList.toggle('show'); $('gErr').textContent=''; }
 };
 $('gLogin').onclick=async()=>{
