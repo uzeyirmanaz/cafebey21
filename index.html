@@ -68,6 +68,11 @@
 
   #gal input, #gal select { -webkit-user-select:text; user-select:text; background:var(--panel); color:var(--text); border:1px solid var(--line); border-radius:8px; padding:9px 10px; font:inherit; font-size:14px; min-width:0; }
   .gcard { position:relative; }
+  .gedit { position:absolute; top:6px; left:6px; padding:4px 9px; min-height:0 !important; font-size:12px; }
+  .srow { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:8px; padding:8px; border:1px solid var(--line); border-radius:8px; }
+  .srow img { width:56px; height:56px; object-fit:cover; border-radius:6px; }
+  .srow input { flex:1 1 140px; min-width:120px; }
+  #aStage { display:none; } #aStage.show { display:block; }
   .gdel { position:absolute; top:6px; right:6px; padding:4px 9px; min-height:0 !important; background:rgba(120,30,30,.92); border-color:#b44; font-size:12px; }
   #gAdm, #gPw { display:none; margin:14px 0 4px; padding:12px; border:1px solid var(--line); border-radius:8px; background:var(--panel); }
   #gAdm.show, #gPw.show { display:block; }
@@ -108,7 +113,12 @@
   <div class="gbody">
     <form id="gPw" autocomplete="on"><div class="grow" style="margin:0"><input id="em" type="email" placeholder="E-posta" aria-label="E-posta" autocomplete="username"><input id="pw" type="password" placeholder="Şifre" aria-label="Şifre" autocomplete="current-password"><button type="submit">Giriş</button><button type="button" id="pwForgot">Şifremi unuttum</button><span id="gErr"></span></div></form>
     <div id="gAdm">
-      <div class="grow" style="margin:0"><input id="aCat" list="aCats" placeholder="Kategori (ör. Konsept)"><datalist id="aCats"></datalist><input id="aTit" placeholder="Başlık (boşsa dosya adı)"><input id="aFile" type="file" accept="image/*" multiple></div>
+      <div class="grow" style="margin:0"><input id="aFile" type="file" accept="image/*" multiple><datalist id="aCats"></datalist></div>
+      <div id="aStage">
+        <div class="grow"><input id="aCat" list="aCats" placeholder="Hepsine aynı kategori (isteğe bağlı)"></div>
+        <div id="aRows"></div>
+        <div class="grow"><button id="aGo" type="button">Yükle</button><button id="aCancel" type="button">İptal</button></div>
+      </div>
       <div class="grow"><button id="aMig" style="display:none">Mevcut görselleri buluta aktar</button></div>
       <form id="pwForm" class="grow" autocomplete="off"><input id="pwNew" type="password" placeholder="Yeni şifre" aria-label="Yeni şifre" autocomplete="new-password"><input id="pwNew2" type="password" placeholder="Yeni şifre (tekrar)" aria-label="Yeni şifre tekrar" autocomplete="new-password"><button type="submit">Şifreyi değiştir</button><span id="pwMsg" class="gnote"></span></form>
       <p class="gnote" id="gSt">Eklenen ve silinen görseller herkese anında yansır.</p>
@@ -809,6 +819,11 @@ function render(){
         if(!confirm('Bu görsel silinsin mi?')) return;
         try{const f=await initFb(); await f.rd.remove(f.rd.ref(f.db,'gallery/'+g.id)); await loadCloud();}catch(e){alert('Silinemedi. Giriş yaptığınızdan ve veritabanı kurallarının doğru olduğundan emin olun.');}
       };w.appendChild(d);}
+      if(admin&&cloud&&g.id){const e=document.createElement('button');e.className='gedit';e.textContent='Düzenle';e.onclick=async()=>{
+        const c2=prompt('Kategori:',g.c); if(c2===null) return;
+        const t2=prompt('Başlık / açıklama:',g.t); if(t2===null) return;
+        try{const f=await initFb(); await f.rd.update(f.rd.ref(f.db,'gallery/'+g.id),{c:c2.trim()||'Diğer',t:t2.trim()||g.t}); await loadCloud();}catch(e){alert('Kaydedilemedi.');}
+      };w.appendChild(e);}
       grid.appendChild(w);
     });
   });
@@ -874,25 +889,46 @@ $('aMig').onclick=async()=>{
   try{ const f=await initFb(); await migrate(f); await loadCloud(); st.textContent='Aktarıldı.'; }
   catch(e){ st.textContent='Aktarılamadı. Veritabanı kurallarını kontrol edin.'; }
 };
-$('aFile').onchange=async e=>{
+let staged=[];
+function clearStage(){ staged.forEach(x=>URL.revokeObjectURL(x.u)); staged=[]; $('aRows').textContent=''; $('aStage').classList.remove('show'); $('aCat').value=''; $('aFile').value=''; }
+function stageRender(){
+  const box=$('aRows'); box.textContent='';
+  staged.forEach((x,i)=>{
+    const r=document.createElement('div'); r.className='srow';
+    const im=document.createElement('img'); im.src=x.u; im.alt='';
+    const c=document.createElement('input'); c.setAttribute('list','aCats'); c.placeholder='Kategori'; c.value=x.c; c.oninput=()=>{x.c=c.value;};
+    const t=document.createElement('input'); t.placeholder='Başlık / açıklama (boşsa: '+x.f.name.replace(/\.[^.]+$/,'')+')'; t.value=x.t; t.oninput=()=>{x.t=t.value;};
+    const d=document.createElement('button'); d.type='button'; d.textContent='✕'; d.setAttribute('aria-label','Kaldır'); d.onclick=()=>{URL.revokeObjectURL(x.u); staged.splice(i,1); staged.length?stageRender():clearStage();};
+    r.append(im,c,t,d); box.appendChild(r);
+  });
+  $('aGo').textContent='Yükle ('+staged.length+')';
+}
+$('aFile').onchange=e=>{
   if(!admin) return;
-  const cat=$('aCat').value.trim()||'Diğer', tit=$('aTit').value.trim();
-  const files=[...e.target.files]; let n=0; const st=$('gSt'); st.textContent='Yükleniyor…';
+  const files=[...e.target.files]; if(!files.length) return;
+  staged=files.map(f=>({f,u:URL.createObjectURL(f),c:$('aCat').value.trim(),t:''}));
+  $('aStage').classList.add('show'); stageRender();
+};
+$('aCat').oninput=()=>{ staged.forEach(x=>x.c=$('aCat').value); stageRender(); };
+$('aCancel').onclick=clearStage;
+$('aGo').onclick=async()=>{
+  if(!admin||!staged.length) return;
+  const st=$('gSt'), list=staged.slice(); $('aGo').disabled=true; st.textContent='Yükleniyor…';
   const f=await initFb();
   try{
     if(!cloud&&EMBED.length){ await migrate(f); }
     let t=Date.now()+1000;
-    for(const file of files){
+    for(const x of list){
       try{
-        const s=await shrink(file);
-        await f.rd.push(col(f),{c:cat,t:tit?(files.length>1?tit+' '+(++n):tit):file.name.replace(/\.[^.]+$/,''),s,ts:t++});
+        const s=await shrink(x.f);
+        await f.rd.push(col(f),{c:x.c.trim()||'Diğer',t:x.t.trim()||x.f.name.replace(/\.[^.]+$/,''),s,ts:t++});
       }catch(err){
-        const heic=/heic|heif/i.test(file.type+file.name);
-        alert(file.name+' eklenemedi.'+(err&&/permission/i.test((err.code||'')+(err.message||''))?' Bu hesabın yazma izni yok (veritabanı kuralları).':heic?' HEIC biçimi açılamıyor; fotoğrafı JPG olarak kaydedin.':' Dosya bozuk, çok büyük ya da desteklenmeyen biçimde olabilir.'));
+        const heic=/heic|heif/i.test(x.f.type+x.f.name);
+        alert(x.f.name+' eklenemedi.'+(err&&/permission/i.test((err.code||'')+(err.message||''))?' Bu hesabın yazma izni yok (veritabanı kuralları).':heic?' HEIC biçimi açılamıyor; fotoğrafı JPG olarak kaydedin.':' Dosya bozuk, çok büyük ya da desteklenmeyen biçimde olabilir.'));
       }
     }
   }catch(err){ alert('Yükleme başarısız. Veritabanı kurallarını kontrol edin.'); }
-  e.target.value=''; $('aTit').value=''; await loadCloud(); st.textContent='Eklenen ve silinen görseller herkese anında yansır.';
+  $('aGo').disabled=false; clearStage(); await loadCloud(); st.textContent='Eklenen ve silinen görseller herkese anında yansır.';
 };
 
 addEventListener('keydown',e=>{
