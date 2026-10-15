@@ -216,7 +216,7 @@ box(40,151.5,207.5,153.5,3.2,3.45,mats.frame,roof); box(40,506.5,207.5,508.5,3.2
 box(40,30,43,615,3.2,3.45,mats.frame,roof); box(204.5,30,207.5,615,3.2,3.45,mats.frame,roof);
 
 // === DIŞ MEKAN (sokak cephesi): taş teras, iki girişin arasında 2 masa + 2'şer sandalye, boydan çiçekli korkuluk ===
-box(12,30,40,615,-0.2,0,M(0xc9c2b4)); box(12,2,207.5,30,-0.2,0,M(0xc9c2b4));   // teras üst yan duvarın önüne doğru uzanır
+box(12,30,40,615,-0.2,0,M(0xc9c2b4));   // teras üst yan duvarın önüne doğru uzanır
 // boydan boya çiçekli korkuluk (iki girişin önünde kapı boşluğu bırakılır)
 const planter=M(0xb5694a), fol=new THREE.InstancedMesh(new THREE.SphereGeometry(.17,8,6),M(0x3f7d3a),600);
 const fcol=[0xe0425a,0xf29bb5,0xf4c542,0xb08ae8], fl=fcol.map(c=>new THREE.InstancedMesh(new THREE.SphereGeometry(.07,6,5),M(c),220));
@@ -234,8 +234,8 @@ const railX=(x0,x1)=>{ box(x0,1.7,x1,2.3,1.0,1.06,mats.frame); box(x0,1.9,x1,2.1
   const c=Math.round((x1-x0)/3.2); for(let i=0;i<c;i++){ const x=x0+(x1-x0)*(i+.5)/c;
     if(nf<600) putI(fol,nf++,X(x+(rnd()-.5)*2),.5,Z(3.8+rnd()*2.5)); const k=Math.floor(rnd()*4);
     for(let j=0;j<2;j++) if(fnC[k]<220) putI(fl[k],fnC[k]++,X(x+(rnd()-.5)*3),.58+rnd()*.15,Z(3.2+rnd()*3.5)); } };
-rail(2,30); railX(12,207.5);   // köşeyi dönen çiçekli korkuluk, üst yan duvar boyunca
-box(207.2,2,207.8,30,1.0,1.06,mats.frame); box(207.2,2,207.8,30,0.5,0.54,mats.frame);
+box(12.2,29.6,40,30.4,1.0,1.06,mats.frame);   // köşeyi dönen çiçekli korkuluk, üst yan duvar boyunca
+
 scene.add(fol); fl.forEach(m=>{ m.count=fnC[fl.indexOf(m)]; scene.add(m); }); fol.count=nf;
 
 wall(207.5,152.5,342.5,152.5,mats.outer); wall(342.5,152.5,342.5,507.5,mats.outer); wall(207.5,507.5,342.5,507.5,mats.outer);
@@ -428,7 +428,7 @@ function duoSet(cx,cz,ax,n){
     B('sSeat',0x15161a,c,.34,0,.7,.2,.66); B('sFrame',0x1f2124,s*(d+.4),.45,0,.04,.5,.7); B('cush',0x7a1030,s*(d+.27),.66,0,.2,.5,.6);
     [-.35,.35].forEach(q=>{ B('arm',0x8c5a2b,c,.62,q,.84,.05,.06); [-.38,.38].forEach(w=>B('post',0x1f2124,c+w,.22,q,.04,.44,.04)); }); });
 }
-[['z',29,305],['z',29,372],['z',29,185],['z',29,118],['z',29,495],['z',29,562],['x',90,18],['x',160,18]].forEach((p,i)=>{ const q=pm(p[1],p[2]); duoSet(q[0],q[1],p[0],i); });
+[['z',29,305],['z',29,372],['z',29,185],['z',29,118],['z',29,495],['z',29,562],null,null].forEach((p,i)=>{ if(!p) return; const q=pm(p[1],p[2]); duoSet(q[0],q[1],p[0],i); });
 // bina altı: toplam 14 oyun masası; WC kapılarına giden iki yol (Y≈377 ve Y≈475) açık, kolon/kasa/şaftla çakışma yok
 [[222,180],[252,180],[282,180],[222,256],[252,256],[282,256],[222,296],[252,296],
  [222,402],[262,402],[302,402],[222,436],[262,436],[302,436]].forEach(t=>{ const q=pm(t[0],t[1]); gameTable(q[0],q[1]); });
@@ -681,6 +681,21 @@ paper('zp',123.75,30,167.5*S,3.2,'botan',.115);
 [55,100,145,190].forEach(x=>lam('zp',x,30,12*S,.13));
 [[77.5,'cup'],[122.5,'leaf'],[167.5,'arch']].forEach(p=>framed('zp',p[0],30,p[1],.125,1.75,.9,1.1));
 lam('zm',123.75,30,167.5*S,.115);
+// === EKSİK DUVAR GİYDİRMELERİ (köz odası, nargile odası, bar/mutfak üst duvarı, mutfak arka duvarı) ===
+PAT.subway=()=>mkT(256,256,(g)=>{ g.fillStyle='#eceae4'; g.fillRect(0,0,256,256); g.fillStyle='#b9b4a8';
+  for(let r=0;r<8;r++){ g.fillRect(0,r*32,256,2); const o=(r%2)*64; for(let c=-1;c<3;c++) g.fillRect(o+c*128,r*32,2,32); } });
+// KÖZ ODASI (x 324–342.5 · y 152.5–198): ceviz lamel — arka duvar, üst duvar, alt duvar ve nargile odasına bakan ara duvarın köz tarafı
+lam('xm',342.5,175.25,45.5*S,.03);
+lam('zp',333.25,152.5,18.5*S,.03);
+lam('zm',333.25,198,18.5*S,.03);
+lam('xp',324,161.25,17.5*S,.03); lam('xp',324,190,16*S,.03);
+// NARGİLE ODASI (x 295–324): alt duvar ve x=295 duvarının iç yüzü — üst duvarla aynı çini desenli kâğıt
+paper('zm',309.5,198,29*S,3.2,'tilepat',.06);
+paper('xp',295,157.25,9.5*S,3.2,'tilepat',.06); paper('xp',295,190,16*S,3.2,'tilepat',.06);
+// BAR üst duvarı (y=205, x 295–324): çekirdek desenli kâğıt · MUTFAK üst ve arka duvarı: beyaz metro karo
+paper('zp',309.5,205,29*S,3.2,'beanpat',.06);
+paper('zp',333.25,205,18.5*S,3.2,'subway',.03);
+paper('xm',342.5,260.5,111*S,3.2,'subway',.02);
 const views={persp:{az:-1.0,el:0.62,r:62,w:56},top:{az:0,el:1.5,r:68,w:32},street:{az:-1.57,el:0.2,r:40,w:56},back:{az:1.9,el:0.35,r:40,w:58}};
 let curView='persp', moved=false;
 const asp=()=>(cv.clientWidth||innerWidth)/(cv.clientHeight||innerHeight);
