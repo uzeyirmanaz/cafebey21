@@ -319,6 +319,7 @@ function wall(x0,y0,x1,y1,mat,h=3.2,yb=0,t=T,parent=scene){
 
 box(40,30,207.5,615,-0.2,0,mats.floorOpen);
 box(207.5,152.5,342.5,507.5,-0.2,0,mats.floorIn);
+box(207.5,30,342.5,152.5,-0.2,0,mats.floorOpen); box(207.5,507.5,342.5,615,-0.2,0,mats.floorOpen);   // yan çatının uzatıldığı alanlar (bina arkasına kadar kutu)
 
 const wins=[];
 const gl = (x0,y0,x1,y1)=>{
@@ -335,20 +336,21 @@ gl(40,30,40,212.5); gl(40,237.5,40,440); gl(40,465,40,615);
 fr(40,212.5,40,237.5,0.9,2.3); fr(40,440,40,465,0.9,2.3);
 [[212.5],[237.5],[440],[465]].forEach(p=>fr(40,p[0],40,p[0],3.2,0));
 fr(40,30,40,615,0.15,3.2);
-wall(40,30,207.5,30,mats.outer,3.2); gl(40,615,207.5,615);   // kuş bakışında üstte kalan yan cephe: cam yerine DUVAR
-fr(40,30,207.5,30,0.15,3.2); fr(40,615,207.5,615,0.15,3.2);
+wall(40,30,342.5,30,mats.outer,3.2); gl(40,615,342.5,615);   // kuş bakışında üstte kalan yan cephe: cam yerine DUVAR
+fr(40,30,342.5,30,0.15,3.2); fr(40,615,342.5,615,0.15,3.2);
+wall(342.5,30,342.5,152.5,mats.outer); wall(342.5,507.5,342.5,615,mats.outer); fr(342.5,30,342.5,152.5,0.15,3.2); fr(342.5,507.5,342.5,615,0.15,3.2);
 for(let y=30;y<=615;y+=97.5){ fr(40,y,40,y,3.4,0); }
-wall(207.5,30,207.5,152.5,mats.outer); wall(207.5,507.5,207.5,615,mats.outer);
+// (x=207.5 ara duvarları kaldırıldı: yan alanlar bina arkasındaki duvara kadar tek mekan)
 
 const roof = new THREE.Group(); scene.add(roof);
-const slats=[], sm=M(0x9fb4be,.45), nS=12;
+const slats=[], sm=M(0x9fb4be,.45), nS=22;
 // Sürgülü çatı camı: paneller giriş yönüne doğru uzanıp kapanır, arkaya (binaya) doğru üst üste toplanıp açılır
-const RX0=X(43), RX1=X(204.5), RW=(RX1-RX0)/nS;
+const RX0=X(43), RX1=X(339.5), RW=(RX1-RX0)/nS;
 // bina hizasındaki cam çatı (y 152.5–507.5) SABİT; sağa ve sola taşan kısımlar (y 30–152.5 · 507.5–615) açılır-kapanır
 [[30,152.5],[507.5,615]].forEach(zn=>{ const zc=(Z(zn[0])+Z(zn[1]))/2, zl=(Z(zn[1])-Z(zn[0]))*0.99;
   for(let i=0;i<nS;i++){ const m=new THREE.Mesh(new THREE.BoxGeometry(RW*0.985,0.05,zl),sm); m.position.set(RX0+RW*(i+.5),3.3,zc); m.userData={cx:RX0+RW*(i+.5),ox:RX1-RW/2,i}; roof.add(m); slats.push(m); } });
-box(40,151.5,207.5,153.5,3.2,3.45,mats.frame,roof); box(40,506.5,207.5,508.5,3.2,3.45,mats.frame,roof);
-box(40,30,43,615,3.2,3.45,mats.frame,roof); box(204.5,30,207.5,615,3.2,3.45,mats.frame,roof);
+box(40,151.5,342.5,153.5,3.2,3.45,mats.frame,roof); box(40,506.5,342.5,508.5,3.2,3.45,mats.frame,roof);
+box(40,30,43,615,3.2,3.45,mats.frame,roof); box(204.5,152.5,207.5,507.5,3.2,3.45,mats.frame,roof); box(339.5,30,342.5,152.5,3.2,3.45,mats.frame,roof); box(339.5,507.5,342.5,615,3.2,3.45,mats.frame,roof);
 
 // === DIŞ MEKAN (sokak cephesi): taş teras, iki girişin arasında 2 masa + 2'şer sandalye, boydan çiçekli korkuluk ===
 box(12,30,40,615,-0.2,0,M(0xc9c2b4));   // teras üst yan duvarın önüne doğru uzanır
@@ -552,6 +554,10 @@ Object.keys(OC).forEach(xk=>{ const x=+xk, ys=OC[xk];
   ys.forEach(y=>{ const q=pm(x,y); sofaSet(q[0],q[1]); });
   for(let i=0;i<ys.length-1;i++) if(ys[i+1]-ys[i]<62){ const q=pm(x,(ys[i]+ys[i+1])/2); plant(q[0],q[1],1.5); }
 });
+// YAN ALANLARIN UZATILAN KISMI (x 207.5-342.5): ayni acik alan kanepe+koltuk takimi ve saksilar
+const XC={228:[61,121,534,588],276:[91,561],322:[61,121,534,588]};
+Object.keys(XC).forEach(xk=>{ const x=+xk; XC[xk].forEach(y=>{ const q=pm(x,y); sofaSet(q[0],q[1]); }); });
+[228,322].forEach(x=>[91,561].forEach(y=>{ const q=pm(x,y); plant(q[0],q[1],1.5); }));
 // BAHÇE: içerdeki salon takımından çift kişilik — masa + KARŞILIKLI iki bordo koltuk (kimse dışarıya bakmaz), 8 adet:
 // iki girişin arası 2 · girişlerin dış yanlarında (sol/sağ) 2'şer · yan bahçede (üst yan duvar boyunca) 2
 function duoSet(cx,cz,ax,n){
@@ -578,7 +584,7 @@ inst(new THREE.SphereGeometry(.13,10,8),new THREE.MeshBasicMaterial({color:0xffc
 inst(new THREE.CylinderGeometry(.008,.008,.8,4),MB(0x111111),cords);
 
 [[34,208],[242,436],[468,611]].forEach(r=>ib(42,r[0],50,r[1],0,.6,0x2a2d30));
-ib(56,34,204,42,0,.6,0x2a2d30); ib(56,603,204,611,0,.6,0x2a2d30);
+ib(56,34,338,42,0,.6,0x2a2d30); ib(56,603,338,611,0,.6,0x2a2d30);
 // KASA: kullanım dışı alanın ucunda (x=265), tezgâh girişe/salona bakar
 ib(251,316,265,344,0,.95,0x8a5a3c); ib(249.5,314.5,266,345.5,.95,1.03,0xe8e0d6);
 ib(255,326,261,334,1.03,1.12,0x2b2f33); ib(255,327,257,333,1.12,1.42,0x2b2f33);
@@ -680,8 +686,10 @@ function framed(face,px,py,art,off,yc=1.75,w=.9,h=1.12){put(face,px,py,yc,off+.0
 // kasa arka duvarı (kullanım dışı bloğun salona bakan yüzü): görselli duvar kağıdı
 put('xm',265,330,1.6,.02,g=>g.add(new THREE.Mesh(new THREE.PlaneGeometry(27.5*S,3.1),BM(T_('mural')))));
 // açık alana bakan bina duvarları
-paper('xm',207.5,91.25,122.5*S,3.2,'botan',.115); paper('xm',207.5,561.25,107.5*S,3.2,'botan',.115);
-[[55,'arch'],[91,'cup'],[127,'leaf'],[528,'star'],[561,'type'],[594,'beans']].forEach(a=>framed('xm',207.5,a[0],a[1],.115));
+// yan alanların arka duvarı (x=342.5): botanik duvar kâğıdı + ceviz lamel pilastrlar + tablolar (ara duvardaki giydirme buraya taşındı)
+paper('xm',342.5,91.25,122.5*S,3.2,'botan',.115); paper('xm',342.5,561.25,107.5*S,3.2,'botan',.115);
+[[55,'arch'],[91,'cup'],[127,'leaf'],[528,'star'],[561,'type'],[594,'beans']].forEach(a=>framed('xm',342.5,a[0],a[1],.115));
+// (arka duvar lamel pilastrları aşağıda, lam tanımlandıktan sonra)
 // bina altı üst duvar (bank üstü)
 paper('zp',250.75,152.5,86.5*S,3.2,'damask',.115);
 [[224,'type'],[251,'leaf'],[278,'arch']].forEach(a=>framed('zp',a[0],152.5,a[1],.115,1.95));
@@ -810,12 +818,18 @@ const colArt=['cup','leaf','arch','star','type','beans'];
 const tilePlane=(x0,y0,x1,y1,key,elev,tile)=>{ const w=(x1-x0)*S,d=(y1-y0)*S,t=T2(key,w/tile,d/tile);
   t.offset.set((X(x0)-X(40))/tile, -(Z(y1)-Z(30))/tile);   // tüm planlar ortak dünya ızgarasına hizalı: derzler kesintisiz devam eder
   const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),BM(t)); m.rotation.x=-Math.PI/2; m.position.set((X(x0)+X(x1))/2,elev,(Z(y0)+Z(y1))/2); interior.add(m); };
-tilePlane(40,30,207.5,615,'fayans',.008,4.8); tilePlane(207.5,152.5,342.5,507.5,'fayans',.008,4.8); tilePlane(324,374,342.5,507.5,'fayans',.024,4.8);
+tilePlane(40,30,207.5,615,'fayans',.008,4.8); tilePlane(207.5,30,342.5,152.5,'fayans',.008,4.8); tilePlane(207.5,507.5,342.5,615,'fayans',.008,4.8); tilePlane(207.5,152.5,342.5,507.5,'fayans',.008,4.8); tilePlane(324,374,342.5,507.5,'fayans',.024,4.8);
 // PENCEREDEN DUVARA ÇEVRİLEN YAN CEPHE (y=30, x 40–207.5): iç yüz = botanik duvar kâğıdı + ceviz lamel pilastrlar + tablolar · dış yüz (teras tarafı) = ceviz lamel
 paper('zp',123.75,30,167.5*S,3.2,'botan',.115);
 [55,100,145,190].forEach(x=>lam('zp',x,30,12*S,.13));
 [[77.5,'cup'],[122.5,'leaf'],[167.5,'arch']].forEach(p=>framed('zp',p[0],30,p[1],.125,1.75,.9,1.1));
 lam('zm',123.75,30,167.5*S,.115);
+// uzatılan kısım (x 207.5–342.5): aynı giydirme
+paper('zp',275,30,135*S,3.2,'botan',.115); [235,280,325].forEach(x=>lam('zp',x,30,12*S,.13));
+[[212.5,'beans'],[257.5,'star'],[302.5,'arch']].forEach(p=>framed('zp',p[0],30,p[1],.125,1.75,.9,1.1));
+lam('zm',275,30,135*S,.115);
+[73,109,545,578].forEach(y=>lam('xm',342.5,y,12*S,.13));
+lam('xp',342.5,91.25,122.5*S,.115); lam('xp',342.5,561.25,107.5*S,.115);
 // === EKSİK DUVAR GİYDİRMELERİ (köz odası, nargile odası, bar/mutfak üst duvarı, mutfak arka duvarı) ===
 PAT.subway=()=>mkT(256,256,(g)=>{ g.fillStyle='#eceae4'; g.fillRect(0,0,256,256); g.fillStyle='#b9b4a8';
   for(let r=0;r<8;r++){ g.fillRect(0,r*32,256,2); const o=(r%2)*64; for(let c=-1;c<3;c++) g.fillRect(o+c*128,r*32,2,32); } });
@@ -920,7 +934,7 @@ const v3=new THREE.Vector3(); let lastT=performance.now();
     const u=m.userData, d=u.i/(nS-1)*0.55;
     const f=clamp((roofT-d)/0.45,0,1), e=f*f*(3-2*f);
     m.position.x=u.cx+(u.ox-u.cx)*e;
-    m.position.y=3.3+(nS-1-u.i)*0.07*Math.min(1,f*6);
+    m.position.y=3.3+(nS-1-u.i)*0.04*Math.min(1,f*6);
   });
   wins.forEach(w=>w.scale.y=Math.max(0.02,1-winT));
   cam.up.set(0,1,0); cam.lookAt(st.tx,ty,st.tz);
