@@ -636,13 +636,108 @@ const cupD=(g,cx,cy,k,col)=>{g.strokeStyle=col;g.lineWidth=k*.05;g.lineCap='roun
 const beanD=(g,x,y,k,a,col)=>{g.save();g.translate(x,y);g.rotate(a);g.fillStyle=col;g.beginPath();g.ellipse(0,0,k,k*.62,0,0,Math.PI*2);g.fill();g.strokeStyle='rgba(0,0,0,.45)';g.lineWidth=k*.12;g.beginPath();g.moveTo(-k*.8,0);g.quadraticCurveTo(0,k*.35,k*.8,0);g.stroke();g.restore();};
 const leafD=(g,x,y,len,a,col)=>{g.save();g.translate(x,y);g.rotate(a);g.fillStyle=col;g.beginPath();g.moveTo(0,0);g.quadraticCurveTo(len*.35,-len*.28,len,0);g.quadraticCurveTo(len*.35,len*.28,0,0);g.fill();g.strokeStyle='rgba(255,255,255,.35)';g.lineWidth=2;g.beginPath();g.moveTo(0,0);g.lineTo(len*.95,0);g.stroke();g.restore();};
 const starP=(g,cx,cy,r,n,col,lw)=>{g.strokeStyle=col;g.lineWidth=lw;g.beginPath();for(let i=0;i<n*2;i++){const a=i*Math.PI/n-Math.PI/2,rr=i%2?r*.55:r;g[i?'lineTo':'moveTo'](cx+Math.cos(a)*rr,cy+Math.sin(a)*rr);}g.closePath();g.stroke();};
+// === ÇERÇEVE TABLOLARI: ünlü eserlerin kodla çizilmiş stilize yorumları (başlık + sanatçı + yıl künyeli) ===
+const artR=s=>()=>(s=(s*16807)%2147483647)/2147483647;
+const artDisc=(g,x,y,r,c)=>{g.fillStyle=c;g.beginPath();g.arc(x,y,r,0,7);g.fill();};
+const artGlow=(g,x,y,r,c,a)=>{const q=g.createRadialGradient(x,y,0,x,y,r);q.addColorStop(0,c);q.addColorStop(1,'rgba(0,0,0,0)');g.globalAlpha=a;g.fillStyle=q;g.beginPath();g.arc(x,y,r,0,7);g.fill();g.globalAlpha=1;};
+const artFrame=(draw,title,sub)=>()=>mkT(512,640,(g,w,h)=>{ g.save();g.beginPath();g.rect(0,0,w,576);g.clip();draw(g,w,576);g.restore();
+  g.fillStyle='#efe6d2';g.fillRect(0,576,w,64);g.textAlign='center';g.fillStyle='#2a2420';g.font='italic 600 27px Georgia,serif';g.fillText(title,256,609);
+  g.font='20px Georgia,serif';g.fillStyle='#6a5a48';g.fillText(sub,256,632); });
+// Yıldızlı Gece (Van Gogh, 1889)
+const artStarry=(g,w,h)=>{ const R=artR(3);
+  let q=g.createLinearGradient(0,0,0,h*.8);q.addColorStop(0,'#0b1f4f');q.addColorStop(.6,'#23508f');q.addColorStop(1,'#3b73b3');g.fillStyle=q;g.fillRect(0,0,w,h);
+  const swirl=(cx,cy,k,sy,turns,cols)=>{ for(let t=.4;t<turns*6.283;t+=.05){ const r=t*k,x=cx+Math.cos(t)*r,y=cy+Math.sin(t)*r*sy; g.strokeStyle=cols[Math.floor(t*2.2)%cols.length];g.lineWidth=4+R()*3;g.lineCap='round';g.beginPath();g.moveTo(x,y);g.lineTo(x+Math.cos(t+1.57)*13,y+Math.sin(t+1.57)*13*sy);g.stroke(); } };
+  swirl(300,175,3.3,.8,3.4,['#e3eef7','#6d9fd3','#1c4a96','#a9c9e9']);
+  swirl(165,150,2.4,.8,2.5,['#dbe9f5','#5f93cc','#173f8c','#9cc0e4']);
+  for(let k=0;k<7;k++){ g.strokeStyle=['#dbe9f5','#5d8fc9','#17408a'][k%3];g.lineWidth=8;g.beginPath(); for(let x=-10;x<=w+10;x+=8){ const y=265+k*12+Math.sin(x/36+k)*15; x<0?g.moveTo(x,y):g.lineTo(x,y);} g.stroke(); }
+  artDisc(g,445,92,40,'#f7db6c'); artDisc(g,461,83,34,'#2b5d9d');
+  [[70,60],[235,55],[378,40],[380,255],[95,255],[215,262]].forEach((s,i)=>{ artGlow(g,s[0],s[1],30,'#fff1a8',.5); artGlow(g,s[0],s[1],16,'#fff7cf',.8); artDisc(g,s[0],s[1],6,'#fffbe2'); });
+  g.fillStyle='#153060';g.beginPath();g.moveTo(0,452);g.quadraticCurveTo(130,402,265,436);g.quadraticCurveTo(390,462,512,420);g.lineTo(512,576);g.lineTo(0,576);g.fill();
+  g.fillStyle='#1b2d52';g.fillRect(0,488,w,88);
+  for(let x=130;x<w;x+=34){ const bw=26+R()*10,bh=18+R()*22; g.fillStyle=R()>.5?'#26395f':'#1d2f55';g.fillRect(x,488-bh+10,bw,bh+10); g.fillStyle='#f5c64a'; if(R()>.35) g.fillRect(x+6,488-bh+18,5,6); }
+  g.fillStyle='#26395f';g.fillRect(335,400,16,100);g.beginPath();g.moveTo(331,402);g.lineTo(343,352);g.lineTo(355,402);g.fill();
+  g.fillStyle='#0e1d17';g.beginPath();g.moveTo(80,576);g.bezierCurveTo(10,480,35,310,58,190);g.bezierCurveTo(70,110,76,60,90,6);g.bezierCurveTo(112,90,128,230,126,360);g.bezierCurveTo(124,470,118,540,118,576);g.fill();
+  g.lineCap='round'; for(let i=0;i<26;i++){ g.strokeStyle=i%3?'#1f3a2a':'#050b08';g.lineWidth=6;const y=30+i*20,x=70+Math.sin(i)*14;g.beginPath();g.moveTo(x,y);g.quadraticCurveTo(x+22,y-28,x+10,y-70);g.stroke(); } };
+// Gece Kafe Terası (Van Gogh, 1888)
+const artTerrace=(g,w,h)=>{ const R=artR(5);
+  let q=g.createLinearGradient(0,0,0,h);q.addColorStop(0,'#09183f');q.addColorStop(.5,'#1d3a7a');q.addColorStop(1,'#14284f');g.fillStyle=q;g.fillRect(0,0,w,h);
+  for(let i=0;i<26;i++){ const x=R()*w,y=R()*190; artGlow(g,x,y,13,'#fff0a0',.5); artDisc(g,x,y,2.6,'#fff8d0'); }
+  g.fillStyle='#16295c';g.fillRect(345,150,167,320); for(let r=0;r<3;r++)for(let c=0;c<2;c++){ g.fillStyle='#2b4a96';g.fillRect(372+c*68,185+r*88,40,60); g.fillStyle='#e9c14b';g.fillRect(380+c*68,193+r*88,24,44); }
+  g.fillStyle='#e3ab2a';g.fillRect(14,228,332,222);
+  let w2=g.createRadialGradient(270,300,10,270,320,260);w2.addColorStop(0,'rgba(255,240,150,.85)');w2.addColorStop(1,'rgba(180,100,20,0)');g.fillStyle=w2;g.fillRect(14,228,332,222);
+  g.fillStyle='#b8721a';g.beginPath();g.moveTo(0,212);g.lineTo(358,212);g.lineTo(346,262);g.lineTo(14,262);g.fill();
+  g.fillStyle='#7d4a10'; for(let x=14;x<346;x+=42){ g.fillRect(x,212,18,50); }
+  [[48,284,70,110],[146,284,70,110]].forEach(a=>{ g.fillStyle='#fbe58a';g.fillRect(a[0],a[1],a[2],a[3]); g.fillStyle='#8a5a14';g.fillRect(a[0]+a[2]/2-2,a[1],4,a[3]); });
+  let fl=g.createLinearGradient(0,440,0,h);fl.addColorStop(0,'#eebf55');fl.addColorStop(1,'#a8702a');g.fillStyle=fl;g.beginPath();g.moveTo(0,440);g.lineTo(350,440);g.lineTo(512,500);g.lineTo(512,h);g.lineTo(0,h);g.fill();
+  g.fillStyle='#17306a';g.beginPath();g.moveTo(350,440);g.lineTo(512,470);g.lineTo(512,500);g.fill();
+  for(let i=0;i<150;i++){ g.fillStyle=R()>.5?'rgba(120,70,20,.35)':'rgba(255,230,140,.35)'; g.beginPath();g.ellipse(R()*w,448+R()*128,7+R()*8,3+R()*3,0,0,7);g.fill(); }
+  [[95,488,30],[210,520,36],[305,478,26]].forEach(t=>{ g.fillStyle='rgba(60,30,5,.4)';g.beginPath();g.ellipse(t[0]+6,t[1]+10,t[2]+4,t[2]*.38,0,0,7);g.fill(); g.fillStyle='#f6efd4';g.beginPath();g.ellipse(t[0],t[1],t[2],t[2]*.36,0,0,7);g.fill(); g.fillStyle='#3a2a18';g.fillRect(t[0]-3,t[1],6,18); });
+  [[60,454,'#26306a'],[148,452,'#f2ecd8'],[262,458,'#2c3470'],[336,452,'#26306a']].forEach(p=>{ g.fillStyle=p[2];g.beginPath();g.moveTo(p[0]-12,p[1]+44);g.lineTo(p[0]-8,p[1]-4);g.lineTo(p[0]+8,p[1]-4);g.lineTo(p[0]+12,p[1]+44);g.fill(); artDisc(g,p[0],p[1]-14,9,'#e8c9a4'); });
+  artGlow(g,285,150,150,'#ffe58a',.55); g.fillStyle='#4a3a1a';g.fillRect(282,176,6,90); g.fillStyle='#fff3a8';g.fillRect(268,138,34,40); g.strokeStyle='#4a3a1a';g.lineWidth=4;g.strokeRect(268,138,34,40); };
+// Büyük Dalga (Hokusai, ~1831)
+const artWave=(g,w,h)=>{ const R=artR(9);
+  let q=g.createLinearGradient(0,0,0,h);q.addColorStop(0,'#f2e4b8');q.addColorStop(.6,'#ead298');q.addColorStop(1,'#e2c080');g.fillStyle=q;g.fillRect(0,0,w,h);
+  g.fillStyle='rgba(205,150,100,.4)'; [[0,40,512,26],[60,95,420,18],[0,140,330,14]].forEach(b=>g.fillRect(b[0],b[1],b[2],b[3]));
+  g.fillStyle='#3a6aa4';g.beginPath();g.moveTo(215,430);g.lineTo(335,318);g.lineTo(455,430);g.fill(); g.fillStyle='#f7f4ea';g.beginPath();g.moveTo(312,340);g.lineTo(335,318);g.lineTo(358,340);g.lineTo(346,347);g.lineTo(335,338);g.lineTo(322,348);g.fill();
+  g.fillStyle='#1f4a8a';g.fillRect(0,420,w,156);
+  for(let y=430;y<576;y+=14){ g.strokeStyle='#3f72b4';g.lineWidth=2;g.beginPath(); for(let x=0;x<=w;x+=10){ const yy=y+Math.sin(x/22+y)*4; x?g.lineTo(x,yy):g.moveTo(x,yy);} g.stroke(); }
+  g.fillStyle='#143a78';g.beginPath();g.moveTo(0,576);g.lineTo(0,300);g.bezierCurveTo(60,200,150,95,265,100);g.bezierCurveTo(350,106,405,170,395,255);g.bezierCurveTo(365,205,330,195,290,205);g.bezierCurveTo(232,218,205,305,265,385);g.bezierCurveTo(305,425,370,430,440,445);g.lineTo(512,455);g.lineTo(512,576);g.fill();
+  g.strokeStyle='#4a7cc0';g.lineWidth=2.5; for(let i=0;i<9;i++){ g.beginPath();g.moveTo(0,330+i*24);g.bezierCurveTo(70,270+i*22,150,220+i*18,235,300+i*10);g.stroke(); }
+  [[190,108],[228,98],[268,99],[306,106],[341,128],[370,165],[387,212]].forEach(f=>{ g.fillStyle='#f7f3e6';g.beginPath();g.moveTo(f[0]-8,f[1]-8);g.quadraticCurveTo(f[0]+16,f[1]+2,f[0]+8,f[1]+38);g.quadraticCurveTo(f[0]-4,f[1]+22,f[0]-14,f[1]+6);g.closePath();g.fill(); });
+  for(let i=0;i<40;i++){ artDisc(g,150+R()*270,70+R()*190,1.5+R()*2.5,'#f7f3e6'); }
+  g.fillStyle='#e8d6a0'; for(let b=0;b<2;b++){ const bx=60+b*110,by=500+b*30; g.beginPath();g.moveTo(bx,by);g.quadraticCurveTo(bx+50,by+22,bx+110,by-6);g.lineTo(bx+100,by-14);g.lineTo(bx+4,by-12);g.fill(); } };
+// Ayçiçekleri (Van Gogh, 1888)
+const artSun=(g,w,h)=>{ const R=artR(11);
+  let q=g.createLinearGradient(0,0,0,h);q.addColorStop(0,'#e6bb3c');q.addColorStop(1,'#d09a22');g.fillStyle=q;g.fillRect(0,0,w,h);
+  g.fillStyle='#bd8618';g.fillRect(0,455,w,121);
+  const heads=[[256,150,62,0],[158,238,56,.5],[355,232,55,1],[205,335,58,.3],[318,340,52,1.4],[108,345,44,2],[402,350,42,.8]];
+  g.lineCap='round'; heads.forEach(hd=>{ g.strokeStyle='#5f7a22';g.lineWidth=9;g.beginPath();g.moveTo(hd[0],hd[1]);g.quadraticCurveTo((hd[0]+256)/2,(hd[1]+470)/2,256+(hd[0]-256)*.1,470);g.stroke(); });
+  [[190,400,-.6],[320,405,.5],[150,320,-1],[360,310,.9]].forEach(l=>{ g.fillStyle='#4f7a24';g.beginPath();g.ellipse(l[0],l[1],34,12,l[2],0,7);g.fill(); });
+  heads.forEach(hd=>{ const x=hd[0],y=hd[1],r=hd[2];
+    for(let ring=0;ring<2;ring++){ const n=18; for(let i=0;i<n;i++){ const a=i*6.283/n+hd[3]+ring*.17,d=r*(ring?.66:.78); g.fillStyle=(i+ring)%3?(ring?'#f7d548':'#f0b81e'):'#e29a12'; g.beginPath();g.ellipse(x+Math.cos(a)*d,y+Math.sin(a)*d,r*.4,r*.17,a,0,7);g.fill(); } }
+    artDisc(g,x,y,r*.47,'#7a4e16'); artDisc(g,x,y,r*.34,'#5a3810'); for(let i=0;i<14;i++){ artDisc(g,x+(R()-.5)*r*.6,y+(R()-.5)*r*.6,2,'#a7762a'); } });
+  g.fillStyle='#e9c75e';g.beginPath();g.moveTo(205,470);g.quadraticCurveTo(190,520,215,565);g.lineTo(297,565);g.quadraticCurveTo(322,520,307,470);g.closePath();g.fill();
+  g.strokeStyle='#8a5c12';g.lineWidth=3;g.stroke(); g.fillStyle='#b3401f';g.font='italic 700 24px Georgia,serif';g.textAlign='center';g.fillText('Vincent',256,528); };
+// Öpücük (Klimt, 1908)
+const artKiss=(g,w,h)=>{ const R=artR(13);
+  let q=g.createRadialGradient(256,250,20,256,288,420);q.addColorStop(0,'#f0d17a');q.addColorStop(1,'#a67a1e');g.fillStyle=q;g.fillRect(0,0,w,h);
+  for(let i=0;i<420;i++){ artDisc(g,R()*w,R()*h,1+R()*2.4,R()>.5?'rgba(255,238,170,.55)':'rgba(110,76,10,.35)'); }
+  g.fillStyle='#4f8a4a';g.fillRect(0,500,w,76); for(let i=0;i<160;i++){ artDisc(g,R()*w,500+R()*76,2+R()*3.5,['#e0507a','#f4d04a','#4a7ed1','#f2f2f2','#d9692a'][i%5]); }
+  const robe=(path,fn)=>{ g.save();path();g.clip();fn();g.restore(); };
+  const manP=()=>{ g.beginPath();g.moveTo(150,540);g.bezierCurveTo(150,420,185,300,225,225);g.lineTo(325,215);g.bezierCurveTo(360,320,372,430,372,540);g.closePath(); };
+  robe(manP,()=>{ g.fillStyle='#d8a737';g.fillRect(100,200,330,360); for(let y=210;y<560;y+=30)for(let x=140;x<400;x+=22){ const c=R(); g.fillStyle=c<.4?'#1a1712':c<.7?'#ece5cf':'#8f6c1a'; g.fillRect(x+((y/30)%2)*8,y,c<.4?10:16,c<.4?24:10); } });
+  g.fillStyle='#d8a737'; const womP=()=>{ g.beginPath();g.moveTo(290,540);g.bezierCurveTo(285,450,300,380,345,335);g.lineTo(420,345);g.bezierCurveTo(445,420,450,490,440,540);g.closePath(); };
+  robe(womP,()=>{ g.fillStyle='#e8c45a';g.fillRect(270,320,200,230); for(let i=0;i<46;i++){ const x=290+R()*160,y=340+R()*200,r=7+R()*13; artDisc(g,x,y,r,['#d94f3a','#2a6aa8','#4a9a5a','#f1ece0','#8a3f9a'][i%5]); artDisc(g,x,y,r*.45,'#f6d66a'); } });
+  artDisc(g,285,196,40,'#ecd0ae'); g.fillStyle='#3a2415';g.beginPath();g.arc(282,184,42,3.3,6.2);g.fill(); for(let i=0;i<9;i++) artDisc(g,252+i*10,168+Math.sin(i)*6,6,'#4d8a3e');
+  artDisc(g,352,238,35,'#ecd0ae'); g.fillStyle='#9a4a1c';g.beginPath();g.arc(355,230,38,3.6,6.4);g.fill(); [[330,205],[352,198],[374,206],[392,222]].forEach((p,i)=>artDisc(g,p[0],p[1],7,['#e0507a','#4a7ed1','#f4d04a','#e0507a'][i]));
+  g.strokeStyle='#4a2a14';g.lineWidth=2.5;g.beginPath();g.arc(352,240,6,.2,2.9);g.stroke(); };
+// İnci Küpeli Kız (Vermeer, ~1665)
+const artPearl=(g,w,h)=>{
+  let q=g.createRadialGradient(256,260,10,256,300,380);q.addColorStop(0,'#2e2519');q.addColorStop(1,'#0a0806');g.fillStyle=q;g.fillRect(0,0,w,h);
+  g.fillStyle='#231a10';g.beginPath();g.moveTo(40,576);g.quadraticCurveTo(90,455,200,440);g.lineTo(330,440);g.quadraticCurveTo(440,455,480,576);g.fill();
+  g.fillStyle='#e9e2cc';g.beginPath();g.moveTo(205,445);g.quadraticCurveTo(255,490,320,445);g.lineTo(325,470);g.quadraticCurveTo(255,520,200,470);g.fill();
+  g.fillStyle='#d3a780';g.beginPath();g.ellipse(262,430,66,96,0,0,7);g.fill();
+  let fc=g.createLinearGradient(160,0,360,0);fc.addColorStop(0,'#f1d1aa');fc.addColorStop(.55,'#dcb48c');fc.addColorStop(1,'#a97b58');g.fillStyle=fc;g.beginPath();g.ellipse(250,285,102,138,0,0,7);g.fill();
+  g.fillStyle='#e2a52a';g.beginPath();g.moveTo(290,95);g.bezierCurveTo(380,150,440,260,402,420);g.bezierCurveTo(370,360,330,300,300,230);g.closePath();g.fill();
+  g.strokeStyle='#b97f18';g.lineWidth=4;for(let i=0;i<4;i++){ g.beginPath();g.moveTo(320+i*10,150+i*40);g.quadraticCurveTo(375+i*8,230+i*34,385,330+i*20);g.stroke(); }
+  g.fillStyle='#2a58a8';g.beginPath();g.moveTo(135,215);g.bezierCurveTo(120,90,200,40,270,48);g.bezierCurveTo(340,52,372,110,350,225);g.bezierCurveTo(300,185,200,180,135,215);g.fill();
+  g.strokeStyle='#5b8fd9';g.lineWidth=5;g.beginPath();g.moveTo(170,150);g.bezierCurveTo(200,95,260,80,320,110);g.stroke(); g.strokeStyle='#1d3f80';g.beginPath();g.moveTo(140,200);g.bezierCurveTo(200,170,290,172,350,208);g.stroke();
+  g.fillStyle='#fbf4ec';[[214,262],[296,258]].forEach(e=>{ g.beginPath();g.ellipse(e[0],e[1],19,9,0,0,7);g.fill(); artDisc(g,e[0],e[1],7,'#2a1a10'); artDisc(g,e[0]+3,e[1]-3,2,'#ffffff'); });
+  g.strokeStyle='rgba(90,50,30,.55)';g.lineWidth=3;[[214,242],[296,238]].forEach(e=>{ g.beginPath();g.moveTo(e[0]-22,e[1]+2);g.quadraticCurveTo(e[0],e[1]-10,e[0]+22,e[1]);g.stroke(); });
+  g.strokeStyle='rgba(120,70,45,.5)';g.lineWidth=3;g.beginPath();g.moveTo(256,278);g.quadraticCurveTo(250,320,236,338);g.quadraticCurveTo(256,348,276,340);g.stroke();
+  g.fillStyle='#b24a3c';g.beginPath();g.moveTo(222,376);g.quadraticCurveTo(256,364,290,376);g.quadraticCurveTo(256,404,222,376);g.fill(); g.fillStyle='#d9796a';g.beginPath();g.ellipse(256,382,17,4,0,0,7);g.fill();
+  let pr=g.createRadialGradient(158,405,2,160,410,20);pr.addColorStop(0,'#ffffff');pr.addColorStop(.5,'#e9eaef');pr.addColorStop(1,'#9aa4b8');g.fillStyle=pr;g.beginPath();g.ellipse(160,410,17,22,0,0,7);g.fill(); artDisc(g,154,402,4,'#ffffff'); };
+const ARTS={
+  arch:artFrame(artStarry,'Yıldızlı Gece','Vincent van Gogh · 1889'),
+  cup:artFrame(artTerrace,'Gece Kafe Terası','Vincent van Gogh · 1888'),
+  type:artFrame(artWave,'Büyük Dalga','Katsushika Hokusai · 1831'),
+  leaf:artFrame(artSun,'Ayçiçekleri','Vincent van Gogh · 1888'),
+  star:artFrame(artKiss,'Öpücük','Gustav Klimt · 1908'),
+  beans:artFrame(artPearl,'İnci Küpeli Kız','Johannes Vermeer · 1665')
+};
+
 const PAT={
-  cup:()=>mkT(512,640,(g,w,h)=>{g.fillStyle='#efe6d2';g.fillRect(0,0,w,h);cupD(g,256,320,300,'#2a2420');g.fillStyle='#2a2420';g.font='italic 600 54px Georgia,serif';g.textAlign='center';g.fillText('Cafe Bey',256,580);}),
-  leaf:()=>mkT(512,640,(g,w,h)=>{g.fillStyle='#24382d';g.fillRect(0,0,w,h);for(let i=0;i<9;i++)leafD(g,256,600,300+((i*37)%120),-Math.PI/2+(i-4)*.28,i%2?'#4f8a5c':'#6aa774');}),
-  arch:()=>mkT(512,640,(g,w,h)=>{g.fillStyle='#efe6d2';g.fillRect(0,0,w,h);g.fillStyle='#c8734f';g.beginPath();g.arc(256,110,38,0,7);g.fill();[['#c8734f',200],['#e0b05a',150],['#8aa58a',100]].forEach(a=>{const r=a[1],cy=560-r*1.6;g.fillStyle=a[0];g.beginPath();g.moveTo(256-r,560);g.lineTo(256-r,cy);g.arc(256,cy,r,Math.PI,0);g.lineTo(256+r,560);g.closePath();g.fill();});}),
-  star:()=>mkT(512,640,(g,w,h)=>{g.fillStyle='#17444a';g.fillRect(0,0,w,h);for(let r=220;r>40;r-=40)starP(g,256,320,r,8,'#d8b25a',3);}),
-  type:()=>mkT(512,640,(g,w,h)=>{g.fillStyle='#1e2124';g.fillRect(0,0,w,h);g.strokeStyle='#c9a24a';g.lineWidth=4;g.strokeRect(24,24,w-48,h-48);g.fillStyle='#ffe3b0';g.font='italic 600 84px Georgia,serif';g.textAlign='center';g.fillText('Cafe Bey',256,310);g.font='26px Georgia,serif';g.fillStyle='#c9a24a';g.fillText('Kahve · Nargile · Okey',256,370);}),
-  beans:()=>mkT(512,640,(g,w,h)=>{g.fillStyle='#3a2418';g.fillRect(0,0,w,h);for(let i=0;i<30;i++)beanD(g,40+((i*97)%440),40+((i*151)%560),34+(i%3)*8,i*.7,i%2?'#6b4128':'#84522f');}),
+  ...ARTS,
   damask:()=>mkT(256,256,(g)=>{g.fillStyle='#2b2f33';g.fillRect(0,0,256,256);g.strokeStyle='rgba(216,178,90,.7)';g.lineWidth=3;[104,52].forEach(r=>{g.beginPath();g.moveTo(128,128-r);g.lineTo(128+r,128);g.lineTo(128,128+r);g.lineTo(128-r,128);g.closePath();g.stroke();});g.fillStyle='rgba(216,178,90,.8)';[[0,0],[256,0],[0,256],[256,256],[128,128]].forEach(c=>{g.beginPath();g.arc(c[0],c[1],12,0,7);g.fill();});[[128,0],[0,128],[256,128],[128,256]].forEach(c=>{g.beginPath();g.arc(c[0],c[1],6,0,7);g.fill();});}),
   botan:()=>mkT(256,256,(g)=>{g.fillStyle='#e4eadf';g.fillRect(0,0,256,256);[[60,200,90,-1.1,'#7fae86'],[190,210,80,-2.0,'#9bc29f'],[130,70,70,.5,'#9bc29f'],[210,60,60,2.4,'#7fae86'],[40,60,50,-.4,'#9bc29f']].forEach(l=>leafD(g,l[0],l[1],l[2],l[3],l[4]));}),
   tilepat:()=>mkT(256,256,(g)=>{g.fillStyle='#17444a';g.fillRect(0,0,256,256);[[128,128,100],[0,0,100],[256,0,100],[0,256,100],[256,256,100]].forEach(c=>starP(g,c[0],c[1],c[2],8,'#d8b25a',3));starP(g,128,128,55,8,'#d8b25a',2);}),
