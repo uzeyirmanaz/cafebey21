@@ -1,0 +1,3229 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#1a0f12">
+<title>Kuaför Adisyon & Stok</title>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+
+<style>
+:root{
+  --bg:#120a0c;
+  --bg2:#1c1014;
+  --card:#24151a;
+  --card2:#2c1a21;
+  --line:rgba(255,220,220,.08);
+  --txt:#f8ecee;
+  --mut:#b89aa3;
+  --acc:#e85d75;
+  --acc2:#f0a0ae;
+  --gold:#f5c04e;
+  --green:#3dd68c;
+  --blue:#5b8cff;
+  --red:#ff6b6b;
+}
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+
+html{
+  -webkit-text-size-adjust:100%;
+}
+
+body{
+  background:var(--bg);
+  color:var(--txt);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  line-height:1.5;
+  padding-bottom:90px;
+  min-height:100dvh;
+}
+
+.wrap{
+  max-width:720px;
+  margin:0 auto;
+  padding:14px;
+}
+
+header.top-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0 10px 0;
+}
+
+.auth-badge-btn {
+  background: var(--card2);
+  border: 1px solid var(--line);
+  color: var(--txt);
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  width: auto;
+}
+
+h1{
+  font-size:1.25rem;
+  margin:8px 0 6px;
+}
+
+h2{
+  font-size:1.02rem;
+  margin:10px 0 8px;
+}
+
+.mut{
+  color:var(--mut);
+  font-size:.84rem;
+}
+
+.card{
+  background:linear-gradient(165deg,var(--card),var(--card2));
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:14px;
+  margin-bottom:12px;
+}
+
+input,
+select,
+textarea{
+  width:100%;
+  background:var(--bg2);
+  border:1px solid var(--line);
+  color:var(--txt);
+  border-radius:12px;
+  padding:11px 12px;
+  font-size:1rem;
+  margin-bottom:8px;
+  font-family:inherit;
+  outline:none;
+}
+
+input:focus,
+select:focus,
+textarea:focus{
+  border-color:var(--acc);
+}
+
+button,
+.btn{
+  background:var(--acc);
+  color:#fff;
+  border:none;
+  font-weight:700;
+  padding:11px 14px;
+  border-radius:12px;
+  font-size:.9rem;
+  cursor:pointer;
+  width:100%;
+  font-family:inherit;
+  -webkit-tap-highlight-color:transparent;
+}
+
+button:active{
+  transform:scale(.98);
+}
+
+button:disabled{
+  opacity:.4;
+  cursor:not-allowed;
+}
+
+.btn2{
+  background:transparent;
+  border:1px solid var(--line);
+  color:var(--txt);
+}
+
+.btn3{
+  background:var(--blue);
+  color:#fff;
+}
+
+.btng{
+  background:var(--green);
+  color:#04160e;
+}
+
+.btnred{
+  background:var(--red);
+  color:#fff;
+}
+
+.row{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.row>*{
+  flex:1;
+  min-width:0;
+}
+
+.tag{
+  display:inline-block;
+  font-size:.65rem;
+  font-weight:700;
+  letter-spacing:.6px;
+  text-transform:uppercase;
+  padding:3px 9px;
+  border-radius:999px;
+}
+
+.t-open{ background:rgba(61,214,140,.15); color:var(--green); }
+.t-paid{ background:rgba(91,140,255,.15); color:var(--blue); }
+.t-low{ background:rgba(255,107,107,.18); color:var(--red); }
+.t-ok{ background:rgba(61,214,140,.15); color:var(--green); }
+.t-app{ background:rgba(240,160,174,.2); color:var(--acc2); }
+.t-cancel{ background:rgba(255,107,107,.15); color:var(--red); }
+
+.hero{
+  background:
+    radial-gradient(500px 220px at 90% 0%,rgba(232,93,117,.2),transparent),
+    radial-gradient(400px 200px at 0% 100%,rgba(91,140,255,.12),transparent);
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:16px;
+  margin-bottom:12px;
+}
+
+.hero b{ font-size:1.15rem; }
+.stat b{ display:block; font-size:1.25rem; }
+
+.clickable-stat {
+  cursor: pointer;
+  border-radius: 12px;
+  padding: 6px;
+  transition: background 0.2s;
+}
+.clickable-stat:hover { background: rgba(255, 255, 255, 0.05); }
+
+.grid3{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; text-align:center; }
+.grid2{ display:grid; grid-template-columns:repeat(2,1fr); gap:8px; text-align:center; }
+.hidden{ display:none!important; }
+
+nav.tabs{
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  background:rgba(18,10,12,.95);
+  backdrop-filter:blur(14px);
+  border-top:1px solid var(--line);
+  display:flex;
+  z-index:50;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+
+nav.tabs button{
+  background:none;
+  color:var(--mut);
+  border:none;
+  padding:9px 2px 7px;
+  font-size:.55rem;
+  font-weight:600;
+  flex:1;
+}
+
+nav.tabs button.on{ color:var(--acc); }
+nav.tabs .ic{ font-size:1.1rem; display:block; margin-bottom:1px; }
+
+.toast{
+  position:fixed;
+  top:14px;
+  left:50%;
+  transform:translateX(-50%);
+  background:var(--card2);
+  border:1px solid var(--acc);
+  padding:11px 16px;
+  border-radius:12px;
+  font-size:.85rem;
+  z-index:999;
+  max-width:92%;
+  box-shadow:0 8px 28px rgba(0,0,0,.5);
+}
+
+.item-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:8px 0;
+  border-bottom:1px dashed var(--line);
+  gap:8px;
+}
+
+.item-row:last-child{ border-bottom:none; }
+.list-card{ cursor:pointer; transition:border-color .15s; }
+.list-card:hover{ border-color:rgba(232,93,117,.4); }
+
+.avatar{
+  width:42px;
+  height:42px;
+  border-radius:50%;
+  background:var(--bg2);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:700;
+  color:var(--acc);
+  font-size:1rem;
+  overflow:hidden;
+  flex-shrink:0;
+}
+
+.avatar img{ width:100%; height:100%; object-fit:cover; }
+
+.photo-box{
+  width:100%;
+  max-width:160px;
+  aspect-ratio:1;
+  border-radius:12px;
+  background:var(--bg2);
+  border:1px dashed var(--line);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  margin:8px 0;
+  cursor:pointer;
+}
+
+.photo-box img{ width:100%; height:100%; object-fit:cover; }
+.empty{ text-align:center; padding:24px 12px; color:var(--mut); }
+.empty .big{ font-size:2rem; margin-bottom:6px; }
+
+.tip{
+  background:rgba(232,93,117,.08);
+  border:1px dashed rgba(232,93,117,.3);
+  border-radius:12px;
+  padding:10px 12px;
+  font-size:.84rem;
+  margin-bottom:10px;
+}
+
+.tip b{ color:var(--acc); }
+.small{ font-size:.8rem; }
+.stock-badge{ font-size:.75rem; padding:2px 8px; border-radius:6px; }
+
+.customer-picker{ position:relative; margin-bottom:8px; }
+.customer-picker input{ margin-bottom:0; }
+
+.customer-results{
+  position:absolute;
+  top:52px;
+  left:0;
+  right:0;
+  z-index:100;
+  background:var(--card2);
+  border:1px solid var(--line);
+  border-radius:12px;
+  overflow:hidden;
+  box-shadow:0 12px 35px rgba(0,0,0,.5);
+  max-height:260px;
+  overflow-y:auto;
+}
+
+.customer-result{
+  padding:12px;
+  border-bottom:1px solid var(--line);
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.customer-result:last-child{ border-bottom:none; }
+.customer-result:active, .customer-result:hover{ background:rgba(232,93,117,.12); }
+
+.customer-result .mini-avatar{
+  width:34px;
+  height:34px;
+  border-radius:50%;
+  background:var(--bg);
+  color:var(--acc);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:700;
+  overflow:hidden;
+  flex-shrink:0;
+}
+
+.customer-result .mini-avatar img{ width:100%; height:100%; object-fit:cover; }
+
+.selected-customer{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:10px 12px;
+  border:1px solid rgba(61,214,140,.35);
+  background:rgba(61,214,140,.07);
+  border-radius:12px;
+  margin-top:8px;
+}
+
+.selected-customer .check{ margin-left:auto; color:var(--green); font-weight:800; }
+.customer-clear{ width:auto; flex:0 0 auto; padding:7px 10px; }
+.no-results{ padding:14px; color:var(--mut); text-align:center; }
+
+.modal-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.75);
+  z-index:80;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:16px;
+}
+
+.label-preview{
+  background:#fff;
+  color:#111;
+  border-radius:10px;
+  padding:14px;
+  font-family:Arial,sans-serif;
+  max-width:280px;
+  margin:10px auto;
+  box-shadow:0 4px 20px rgba(0,0,0,.35);
+}
+
+.label-preview .name{ font-size:1.1rem; font-weight:800; margin-bottom:4px; }
+.label-preview .meta{ font-size:.78rem; color:#444; line-height:1.4; }
+.label-preview img{ width:70px; height:70px; object-fit:cover; border-radius:8px; float:right; margin-left:8px; }
+
+optgroup { background: var(--bg2); color: var(--acc2); font-weight: bold; }
+
+#fireworks-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 9997;
+}
+
+.congratulations-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(3px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 9998;
+  animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.congratulations-box {
+  background: rgba(28, 16, 20, 0.92);
+  border: 2px solid var(--gold);
+  border-radius: 24px;
+  padding: 30px;
+  text-align: center;
+  box-shadow: 0 0 50px rgba(245, 192, 78, 0.5);
+  max-width: 90%;
+  width: 360px;
+  position: relative;
+  z-index: 9999;
+}
+
+.congratulations-box h2 { font-size: 2.2rem; color: var(--gold); margin-bottom: 10px; text-shadow: 0 2px 10px rgba(245, 192, 78, 0.5); }
+.congratulations-box p { font-size: 1.1rem; color: var(--txt); margin-bottom: 20px; }
+
+@keyframes popIn {
+  0% { transform: scale(0.5); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.boya-formul {
+  white-space: pre-wrap;
+  font-size: 0.82rem;
+  color: var(--acc2);
+  margin-top: 4px;
+  line-height: 1.45;
+}
+
+.price-readonly {
+  font-weight: 700;
+  color: var(--gold);
+  font-size: 1rem;
+  padding: 6px 0;
+}
+</style>
+</head>
+
+<body>
+
+<canvas id="fireworks-canvas" class="hidden"></canvas>
+
+<div id="congrats-modal" class="congratulations-modal hidden">
+  <div class="congratulations-box">
+    <div style="font-size: 3.5rem; margin-bottom: 10px;">🎉 🎆 🥳</div>
+    <h2>Tebrikler!</h2>
+    <p id="congrats-msg">Adisyon başarıyla kapatıldı.</p>
+    <button class="btng" style="padding: 12px 24px; font-size: 1.1rem;" onclick="closeCongratsModal()">Harika!</button>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <header class="top-header">
+    <div style="font-weight: 800; color: var(--acc); font-size: 1.1rem;">✂️ Kuaför Adisyon</div>
+    <button class="auth-badge-btn" onclick="openAuthModal()">
+      <span>👤</span>
+      <span id="role-label">Müdür Modu</span>
+    </button>
+  </header>
+
+<div id="t-panel">
+
+  <div class="hero">
+    <b>💇 Kuaför Adisyon</b><br>
+    <span class="mut" id="today-line">Bugün —</span>
+  </div>
+
+  <div class="card">
+    <div class="grid3">
+      <div class="stat clickable-stat" onclick="go('t-adisyon')">
+        <b id="st-open">0</b>
+        <span class="mut">Açık adisyon</span>
+      </div>
+
+      <div class="stat clickable-stat" onclick="go('t-istatistik')">
+        <b id="st-ciro">₺0</b>
+        <span class="mut">Bugün ciro</span>
+      </div>
+
+      <div class="stat clickable-stat" onclick="go('t-randevu')">
+        <b id="st-randevu">0</b>
+        <span class="mut">Bugün randevu</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="tip">
+    <b>💡 Hızlı akış:</b>
+    Müşteri ekle → Personel seç → Randevu / Adisyon aç → Hizmet + ürün ekle → Ödeme al.
+  </div>
+
+  <div class="card">
+    <h2>Açık adisyonlar</h2>
+    <div id="open-bills"></div>
+
+    <button
+      class="btn2"
+      style="margin-top:8px"
+      onclick="openNewBillPage()">
+      ＋ Yeni adisyon aç
+    </button>
+  </div>
+
+  <div class="card">
+    <h2>Bugünkü randevular</h2>
+    <div id="today-apps"></div>
+  </div>
+
+  <div class="card">
+    <h2>Düşük stok uyarıları</h2>
+    <div id="low-stock"></div>
+  </div>
+
+</div>
+
+<div id="t-istatistik" class="hidden">
+
+  <h1>📊 Ciro & İstatistik Raporu</h1>
+
+  <div class="card" style="border-color: rgba(232,93,117,.3);">
+    <h2>Genel Bakış</h2>
+    <div class="grid2" style="margin-bottom:12px;">
+      <div class="stat" style="background:var(--bg2);padding:10px;border-radius:12px;">
+        <span class="mut">Bu Hafta Ciro</span>
+        <b id="st-week-ciro" style="color:var(--green)">₺0</b>
+      </div>
+      <div class="stat" style="background:var(--bg2);padding:10px;border-radius:12px;">
+        <span class="mut">Bu Ay Toplam Ciro</span>
+        <b id="st-month-ciro-top" style="color:var(--gold)">₺0</b>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Aylık İstatistik Detayı</h2>
+    
+    <div class="row" style="margin-bottom:12px;">
+      <select id="stat-month-select" onchange="renderPanelStats()" style="margin-bottom:0;">
+        <option value="0">Ocak</option>
+        <option value="1">Şubat</option>
+        <option value="2">Mart</option>
+        <option value="3">Nisan</option>
+        <option value="4">Mayıs</option>
+        <option value="5">Haziran</option>
+        <option value="6">Temmuz</option>
+        <option value="7">Ağustos</option>
+        <option value="8">Eylül</option>
+        <option value="9">Ekim</option>
+        <option value="10">Kasım</option>
+        <option value="11">Aralık</option>
+      </select>
+      
+      <select id="stat-year-select" onchange="renderPanelStats()" style="margin-bottom:0;flex:0 0 100px;">
+        <option value="2025">2025</option>
+        <option value="2026">2026</option>
+        <option value="2027">2027</option>
+      </select>
+    </div>
+
+    <div class="grid3" style="background:rgba(0,0,0,.2);padding:12px;border-radius:12px;margin-bottom:12px;">
+      <div class="stat">
+        <b id="st-m-count" style="font-size:1.1rem">0</b>
+        <span class="mut" style="font-size:.75rem">Adisyon Adet</span>
+      </div>
+      <div class="stat">
+        <b id="st-m-avg" style="font-size:1.1rem">₺0</b>
+        <span class="mut" style="font-size:.75rem">Ort. Adisyon</span>
+      </div>
+      <div class="stat">
+        <b id="st-m-prod" style="font-size:1.1rem">0</b>
+        <span class="mut" style="font-size:.75rem">Satılan Ürün</span>
+      </div>
+    </div>
+
+    <div style="background:var(--bg2);padding:12px;border-radius:12px;">
+      <span class="mut">Seçili Ay Toplam Ciro:</span>
+      <b id="st-month-ciro" style="color:var(--gold);font-size:1.4rem;display:block;margin-top:2px;">₺0</b>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>💳 Ödeme Yöntemi Dağılımı (Seçili Ay)</h2>
+    <div id="stat-payment-breakdown">
+      <div class="empty" style="padding:10px;">Veri yok</div>
+    </div>
+  </div>
+
+</div>
+
+<div id="t-musteri" class="hidden">
+
+  <h1>Müşteriler</h1>
+
+  <div class="card">
+    <input
+      id="m-search"
+      placeholder="🔎 Müşteri ara..."
+      oninput="renderMusteriler()">
+
+    <button
+      class="btn2"
+      onclick="showMusteriForm()">
+      ＋ Yeni müşteri
+    </button>
+  </div>
+
+  <div id="musteri-form" class="card hidden">
+    <h2 id="mf-title">Yeni müşteri</h2>
+
+    <input id="m-ad" placeholder="Ad">
+    <input id="m-soyad" placeholder="Soyad">
+    <input id="m-tel" placeholder="Telefon">
+    <input id="m-not" placeholder="Not (alerji, tercih…)">
+
+    <div
+      class="photo-box"
+      id="m-photo-box"
+      onclick="document.getElementById('m-photo-file').click()">
+
+      <span class="mut" id="m-photo-ph">📷 Fotoğraf ekle</span>
+
+      <img
+        id="m-photo-img"
+        class="hidden"
+        alt="">
+    </div>
+
+    <input
+      type="file"
+      id="m-photo-file"
+      accept="image/*"
+      capture="user"
+      class="hidden"
+      onchange="loadPhoto(this,'m-photo-img','m-photo-ph')">
+
+    <div class="row">
+      <button onclick="saveMusteri()">Kaydet</button>
+      <button class="btn2" onclick="hideMusteriForm()">İptal</button>
+    </div>
+  </div>
+
+  <div id="musteri-list"></div>
+
+</div>
+
+<!-- PERSONEL PANELI -->
+<div id="t-personel" class="hidden">
+  <h1>Personeller</h1>
+
+  <div class="card">
+    <button class="btn2" onclick="showPersonelForm()">＋ Yeni Personel Ekle</button>
+  </div>
+
+  <div id="personel-form" class="card hidden">
+    <h2 id="pf-title">Yeni Personel</h2>
+    <input id="p-ad" placeholder="Ad Soyad">
+    <input id="p-unvan" placeholder="Unvan (örn: Usta, Kalfa, Renk Uzmanı)">
+    <input id="p-tel" placeholder="Telefon">
+
+    <div class="row">
+      <button onclick="savePersonel()">Kaydet</button>
+      <button class="btn2" onclick="hidePersonelForm()">İptal</button>
+    </div>
+  </div>
+
+  <div id="personel-list"></div>
+</div>
+
+<div id="t-randevu" class="hidden">
+
+  <h1>Randevular</h1>
+
+  <div class="card">
+    <div class="row">
+      <button class="btn2" onclick="showRandevuForm()">＋ Randevu ekle</button>
+      <button class="btn3" onclick="showSaatAralikModal()">⏰ Çalışma Saatleri</button>
+    </div>
+  </div>
+
+  <div id="randevu-form" class="card hidden">
+
+    <h2>Yeni randevu</h2>
+
+    <div class="customer-picker" id="r-customer-picker">
+      <input
+        id="r-musteri-search"
+        autocomplete="off"
+        placeholder="🔎 Müşteri ismi yazın..."
+        oninput="searchCustomer('r')"
+        onfocus="searchCustomer('r')">
+
+      <div id="r-musteri-results" class="customer-results hidden"></div>
+      <div id="r-selected-customer" class="selected-customer hidden"></div>
+    </div>
+
+    <label class="small mut">Personel Seçin:</label>
+    <select id="r-personel">
+      <option value="">Personel Seç</option>
+    </select>
+
+    <input type="date" id="r-tarih">
+
+    <label class="small mut">Başlangıç Saati:</label>
+    <select id="r-saat-basla"></select>
+
+    <label class="small mut">Bitiş Saati:</label>
+    <select id="r-saat-bitis"></select>
+
+    <input id="r-hizmet" placeholder="Hizmet (örn: Saç kesim + boya)">
+
+    <textarea id="r-not" rows="2" placeholder="Not"></textarea>
+
+    <div class="row">
+      <button onclick="saveRandevu()">Kaydet</button>
+      <button class="btn2" onclick="hideRandevuForm()">İptal</button>
+    </div>
+
+  </div>
+
+  <div id="randevu-list"></div>
+
+</div>
+
+<div id="t-adisyon" class="hidden">
+
+  <h1>Adisyon / Satış</h1>
+
+  <div id="bill-create" class="card">
+
+    <h2>Yeni adisyon</h2>
+
+    <div class="customer-picker" id="b-customer-picker">
+      <input
+        id="b-musteri-search"
+        autocomplete="off"
+        placeholder="🔎 Müşteri ismi yazın..."
+        oninput="searchCustomer('b')"
+        onfocus="searchCustomer('b')">
+
+      <div id="b-musteri-results" class="customer-results hidden"></div>
+      <div id="b-selected-customer" class="selected-customer hidden"></div>
+    </div>
+
+    <label class="small mut">İşlemi Yapan Personel:</label>
+    <select id="b-personel" style="margin-bottom: 12px;">
+      <option value="">Personel Seç (İsteğe Bağlı)</option>
+    </select>
+
+    <button onclick="createBill()">🧾 Adisyon Aç</button>
+
+  </div>
+
+  <div id="bill-active" class="hidden">
+
+    <div class="card">
+      <div class="row" style="align-items:center">
+        <div>
+          <b id="ba-name">—</b>
+          <div class="mut" id="ba-meta"></div>
+          <div class="mut small" id="ba-personel-info" style="color:var(--gold); font-weight:bold;"></div>
+        </div>
+
+        <span class="tag t-open" id="ba-status">Açık</span>
+      </div>
+    </div>
+
+    <div class="card">
+
+      <h2>Hizmet ekle</h2>
+
+      <input 
+        id="ba-svc-search" 
+        placeholder="🔎 Hizmetlerde ara..." 
+        oninput="fillSvcProdSelects()">
+
+      <select id="ba-svc">
+        <option value="">Hizmet seç</option>
+      </select>
+
+      <div class="row">
+        <input id="ba-svc-price" type="number" min="0" placeholder="Fiyat ₺">
+        <button style="flex:0 0 100px" onclick="addService()">Ekle</button>
+      </div>
+
+    </div>
+
+    <div class="card">
+
+      <h2>Ürün sat — stok düşer</h2>
+
+      <select id="ba-prod">
+        <option value="">Ürün seç</option>
+      </select>
+
+      <div class="row">
+        <input id="ba-prod-qty" type="number" value="1" min="1" style="flex:0 0 70px">
+        <input id="ba-prod-price" type="number" min="0" placeholder="Fiyat ₺">
+        <button style="flex:0 0 90px" onclick="addProduct()">Sat</button>
+      </div>
+
+    </div>
+
+    <div class="card">
+
+      <h2>Kalemler</h2>
+      <div id="ba-items"></div>
+
+      <div class="item-row" style="margin-top:8px;font-weight:700">
+        <span>Toplam</span>
+        <span id="ba-total">₺0</span>
+      </div>
+
+      <div class="row admin-only" style="margin-top:10px">
+        <input id="ba-indirim" type="number" min="0" placeholder="İndirim ₺">
+        <button class="btn2" style="flex:0 0 90px" onclick="applyIndirim()">Uygula</button>
+      </div>
+
+    </div>
+
+    <div class="card">
+
+      <h2>Ödeme & İşlemler</h2>
+
+      <div class="row">
+        <button class="btng" onclick="closeBill('nakit')">Nakit</button>
+        <button class="btn3" onclick="closeBill('kart')">Kart</button>
+        <button class="btn2" onclick="closeBill('havale')">Havale</button>
+      </div>
+
+      <div class="row" style="margin-top:8px">
+        <button class="btn2" onclick="printLabel()">🖨️ Niimbot Etiket</button>
+        <button class="btnred" onclick="cancelActiveBill()">🚫 Adisyonu İptal Et</button>
+      </div>
+
+    </div>
+
+  </div>
+
+  <div id="bill-history" class="card admin-only" style="margin-top:12px">
+    <h2>Son kapanan adisyonlar</h2>
+    <div id="closed-bills"></div>
+  </div>
+
+</div>
+
+<div id="t-stok" class="hidden">
+
+  <h1>Ürün & Stok</h1>
+
+  <div class="card">
+    <button class="btn2" onclick="showUrunForm()">＋ Ürün ekle</button>
+  </div>
+
+  <div id="urun-form" class="card hidden">
+
+    <h2 id="uf-title">Yeni ürün</h2>
+
+    <select id="u-marka">
+      <option value="">Marka Seç (Üst Segment)</option>
+      <option value="Kérastase">Kérastase</option>
+      <option value="L'Oréal Professionnel">L'Oréal Professionnel</option>
+      <option value="Majirel">Majirel</option>
+      <option value="Schwarzkopf Professional">Schwarzkopf Professional</option>
+      <option value="Igora Royal">Igora Royal</option>
+      <option value="Wella Professionals">Wella Professionals</option>
+      <option value="Matrix">Matrix</option>
+      <option value="Inoa">Inoa</option>
+      <option value="Diğer">Diğer Marka</option>
+    </select>
+
+    <input id="u-ad" placeholder="Ürün adı (örn: Boya 7.1)">
+    <input id="u-barkod" placeholder="Barkod / kod (isteğe bağlı)">
+    <input id="u-fiyat" type="number" min="0" placeholder="Satış fiyatı ₺">
+    <input id="u-stok" type="number" min="0" placeholder="Stok adedi">
+    <input id="u-min" type="number" min="0" placeholder="Minimum stok (uyarı)">
+
+    <div class="row">
+      <button onclick="saveUrun()">Kaydet</button>
+      <button class="btn2" onclick="hideUrunForm()">İptal</button>
+    </div>
+
+  </div>
+
+  <div id="urun-list"></div>
+
+</div>
+
+<div id="t-hizmet" class="hidden">
+
+  <h1>Hizmetler</h1>
+
+  <p class="mut" style="margin-bottom:8px" id="hizmet-desc">
+    Yeni hizmet ekleyebilirsiniz. Mevcut fiyatları sadece Yönetici düzenleyebilir.
+  </p>
+
+  <div class="card">
+    <input 
+      id="h-search" 
+      placeholder="🔎 Hizmetlerde ara..." 
+      oninput="renderHizmetler()" 
+      style="margin-bottom:8px">
+
+    <button class="btn2" onclick="showHizmetForm()">＋ Hizmet ekle</button>
+  </div>
+
+  <div id="hizmet-form" class="card hidden">
+
+    <h2>Yeni hizmet</h2>
+
+    <input id="h-kategori" list="kategori-list" placeholder="Kategori yazın (örn: Kesim, Renklendirme, Bakım)">
+    <datalist id="kategori-list">
+      <option value="Kesim">
+      <option value="Renklendirme">
+      <option value="Bakım">
+      <option value="Diğer">
+    </datalist>
+
+    <input id="h-ad" placeholder="Hizmet adı">
+    <input id="h-fiyat" type="number" min="0" placeholder="Varsayılan fiyat ₺">
+
+    <div class="row">
+      <button onclick="saveHizmet()">Kaydet</button>
+      <button class="btn2" onclick="hideHizmetForm()">İptal</button>
+    </div>
+
+  </div>
+
+  <div id="hizmet-list"></div>
+
+</div>
+
+<div id="t-boya" class="hidden">
+
+  <h1>Boya & Ziyaret Kaydı</h1>
+
+  <p class="mut" style="margin-bottom:10px">
+    Müşterinin geliş tarihi, kullanılan marka ve formül detayları burada tutulur. İsme tıklayarak düzenleyebilir, arama ile geçmiş kayıtları bulabilirsiniz.
+  </p>
+
+  <div class="card">
+
+    <div class="customer-picker" id="by-customer-picker">
+      <input
+        id="by-musteri-search"
+        autocomplete="off"
+        placeholder="🔎 Müşteri ismi yazın..."
+        oninput="searchCustomer('by')"
+        onfocus="searchCustomer('by')">
+
+      <div id="by-musteri-results" class="customer-results hidden"></div>
+      <div id="by-selected-customer" class="selected-customer hidden"></div>
+    </div>
+
+    <button class="btn2" style="margin-top:6px" onclick="showBoyaForm()">
+      ＋ Boya / ziyaret kaydı ekle
+    </button>
+
+  </div>
+
+  <div id="boya-form" class="card hidden">
+
+    <h2 id="by-form-title">Yeni kayıt</h2>
+
+    <input type="date" id="by-tarih">
+
+    <select id="by-marka">
+      <option value="">Marka Seçin (Üst Segment)</option>
+      <option value="Kérastase">Kérastase</option>
+      <option value="L'Oréal Professionnel">L'Oréal Professionnel</option>
+      <option value="Majirel">Majirel</option>
+      <option value="Schwarzkopf Professional">Schwarzkopf Professional</option>
+      <option value="Igora Royal">Igora Royal</option>
+      <option value="Wella Professionals">Wella Professionals</option>
+      <option value="Matrix">Matrix</option>
+      <option value="Inoa">Inoa</option>
+      <option value="Diğer">Diğer Marka</option>
+    </select>
+
+    <input id="by-renk" placeholder="İşlem özeti (örn: Komple boya kısa saç)">
+
+    <label class="small mut">Formül detayı (gram / kod / oksidan):</label>
+    <textarea id="by-formul" rows="6" placeholder="Örnek:&#10;30 gr 7.1&#10;20 gr 5&#10;10 gr gri&#10;60 gr %20 vol oksidan"></textarea>
+
+    <textarea id="by-not" rows="2" placeholder="Ek not (isteğe bağlı)"></textarea>
+
+    <div class="row">
+      <button onclick="saveBoya()">Kaydet</button>
+      <button class="btn2" onclick="hideBoyaForm()">İptal</button>
+    </div>
+
+  </div>
+
+  <div class="card">
+    <input
+      id="by-list-search"
+      placeholder="🔎 Kayıtlarda müşteri ismi ara..."
+      oninput="renderBoyaPage()"
+      style="margin-bottom:10px">
+    <div id="boya-list"></div>
+  </div>
+
+</div>
+
+<div id="label-modal" class="hidden modal-overlay">
+  <div class="card" style="max-width:340px;width:100%;margin:0">
+    <h2>🖨️ Niimbot Etiket</h2>
+    <p class="mut small">
+      Tarayıcıdan doğrudan Bluetooth Niimbot bağlantısı kısıtlıdır. Etiketi PNG olarak oluşturup Niimbot uygulamasına aktarabilirsiniz.
+    </p>
+
+    <div class="label-preview" id="label-canvas">
+      <div class="name" id="lb-name">Ad Soyad</div>
+      <img id="lb-photo" class="hidden" alt="">
+      <div class="meta" id="lb-meta">İşlem · Tarih</div>
+    </div>
+
+    <div class="row" style="margin-top:12px">
+      <button class="btn3" onclick="downloadLabel()">📷 Etiketi indir</button>
+      <button class="btn2" onclick="closeLabelModal()">Kapat</button>
+    </div>
+  </div>
+</div>
+
+<div id="saat-aralik-modal" class="hidden modal-overlay">
+  <div class="card" style="max-width:340px;width:100%;margin:0">
+    <h2>⏰ Çalışma Saatleri & Randevu Aralığı</h2>
+    <label class="small mut">Başlangıç Saati:</label>
+    <input type="time" id="cfg-start" value="09:00">
+    
+    <label class="small mut">Bitiş Saati:</label>
+    <input type="time" id="cfg-end" value="19:00">
+
+    <label class="small mut">Randevu Dakika Aralığı:</label>
+    <select id="cfg-interval">
+      <option value="15">15 Dakika</option>
+      <option value="30" selected>30 Dakika</option>
+      <option value="45">45 Dakika</option>
+      <option value="60">60 Dakika (1 Saat)</option>
+    </select>
+
+    <div class="row" style="margin-top:12px">
+      <button onclick="saveWorkHours()">Kaydet</button>
+      <button class="btn2" onclick="closeSaatAralikModal()">İptal</button>
+    </div>
+  </div>
+</div>
+
+<div id="edit-closed-bill-modal" class="hidden modal-overlay">
+  <div class="card" style="max-width:420px;width:100%;margin:0;max-height:90vh;overflow-y:auto;">
+    <div class="row" style="align-items:center;justify-content:space-between;margin-bottom:8px">
+      <h2>✏️ Kapanan Adisyon Düzenle</h2>
+      <button class="btn2" style="width:auto;padding:4px 8px" onclick="closeEditClosedBillModal()">✕</button>
+    </div>
+
+    <input type="hidden" id="ecb-id">
+    <div class="mut" id="ecb-info" style="margin-bottom:10px"></div>
+
+    <div style="border-top:1px dashed var(--line);padding-top:8px;margin-bottom:8px">
+      <label class="small mut">Ödeme Yöntemi:</label>
+      <select id="ecb-odeme" style="margin-top:4px">
+        <option value="nakit">Nakit</option>
+        <option value="kart">Kart</option>
+        <option value="havale">Havale</option>
+      </select>
+    </div>
+
+    <div style="border-top:1px dashed var(--line);padding-top:8px;margin-bottom:8px">
+      <label class="small mut">İndirim (₺):</label>
+      <input id="ecb-indirim" type="number" min="0" placeholder="İndirim ₺" oninput="calculateEcbTotal()">
+    </div>
+
+    <h3>Kalemler & Fiyatlar</h3>
+    <div id="ecb-items" style="margin-bottom:12px"></div>
+
+    <div class="item-row" style="font-weight:700;font-size:1.1rem;margin-bottom:12px">
+      <span>Yeni Toplam:</span>
+      <span id="ecb-total-display" style="color:var(--green)">₺0</span>
+    </div>
+
+    <div class="row">
+      <button class="btng" onclick="saveClosedBillChanges()">💾 Değişiklikleri Kaydet</button>
+      <button class="btnred" onclick="cancelClosedBillFromModal()">🚫 Adisyonu İptal Et (İade)</button>
+    </div>
+
+  </div>
+</div>
+
+<div id="auth-modal" class="hidden modal-overlay">
+  <div class="card" style="max-width:340px;width:100%;margin:0">
+    <div id="auth-login-view">
+      <h2>🔐 Yönetici Girişi</h2>
+      <p class="mut small" style="margin-bottom:12px">Tüm panellere erişmek için yönetici şifresini giriniz.</p>
+      <input type="password" id="admin-pass-input" placeholder="Yönetici Şifresi" style="text-align:center;font-size:1.2rem;letter-spacing:4px">
+      <div class="row" style="margin-top:8px">
+        <button onclick="loginAdmin()">Giriş Yap</button>
+        <button class="btn2" onclick="closeAuthModal()">İptal</button>
+      </div>
+    </div>
+
+    <div id="auth-admin-view" class="hidden">
+      <h2>👤 Yönetici Paneli</h2>
+      <p class="mut small" style="margin-bottom:12px">Şu anda Yönetici (Patron) modundasınız.</p>
+      
+      <div style="border-top:1px dashed var(--line);padding-top:10px;margin-bottom:10px">
+        <label class="small mut">Yeni Şifre Belirle:</label>
+        <input type="password" id="new-pass-input" placeholder="Yeni Şifre" style="margin-top:4px">
+        <button class="btn3" style="margin-top:4px" onclick="changePassword()">🔑 Şifreyi Güncelle</button>
+      </div>
+
+      <div class="row" style="margin-top:12px">
+        <button class="btnred" onclick="logoutAdmin()">🔒 Müdür Moduna Geç (Çıkış)</button>
+        <button class="btn2" onclick="closeAuthModal()">Kapat</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<nav class="tabs">
+
+  <button
+    data-t="t-panel"
+    class="admin-only-tab hidden"
+    onclick="go('t-panel')">
+    <span class="ic">🏠</span>
+    Panel
+  </button>
+
+  <button
+    data-t="t-istatistik"
+    class="admin-only-tab hidden"
+    onclick="go('t-istatistik')">
+    <span class="ic">📊</span>
+    İstatistik
+  </button>
+
+  <button
+    data-t="t-musteri"
+    onclick="go('t-musteri')">
+    <span class="ic">👤</span>
+    Müşteri
+  </button>
+
+  <button
+    data-t="t-personel"
+    onclick="go('t-personel')">
+    <span class="ic">✂️</span>
+    Personeller
+  </button>
+
+  <button
+    data-t="t-randevu"
+    onclick="go('t-randevu')">
+    <span class="ic">📅</span>
+    Randevu
+  </button>
+
+  <button
+    data-t="t-adisyon"
+    class="on"
+    onclick="go('t-adisyon')">
+    <span class="ic">🧾</span>
+    Adisyon
+  </button>
+
+  <button
+    data-t="t-stok"
+    class="admin-only-tab hidden"
+    onclick="go('t-stok')">
+    <span class="ic">📦</span>
+    Stok
+  </button>
+
+  <button
+    data-t="t-hizmet"
+    onclick="go('t-hizmet')">
+    <span class="ic">💄</span>
+    Hizmet
+  </button>
+
+  <button
+    data-t="t-boya"
+    class="admin-only-tab hidden"
+    onclick="go('t-boya')">
+    <span class="ic">🎨</span>
+    Boya
+  </button>
+
+</nav>
+
+<script>
+const firebaseConfig = {
+  apiKey:"AIzaSyA3F9E-DdDsXNxfXi7WWNpuoSPJjUiC1c8",
+  authDomain:"onur-adisyon.firebaseapp.com",
+  databaseURL:"https://onur-adisyon-default-rtdb.firebaseio.com",
+  projectId:"onur-adisyon",
+  storageBucket:"onur-adisyon.firebasestorage.app",
+  messagingSenderId:"530322498456",
+  appId:"1:530322498456:web:25631fd938f798dd7441ed",
+  measurementId:"G-XDTD3JWHER"
+};
+
+firebase.initializeApp(firebaseConfig);
+const rtdb=firebase.database();
+
+let db={
+  musteriler:[],
+  personeller:[],
+  randevular:[],
+  hizmetler:[],
+  urunler:[],
+  adisyonlar:[],
+  boyaKayitlari:[],
+  activeBill:null,
+  adminPass:"1234",
+  workHours:{ start:"09:00", end:"19:00", interval:30 }
+};
+
+let isAdmin = false;
+let currentTab = "t-adisyon";
+
+let selectedCustomers={ b:null, r:null, by:null };
+let editMusteriId=null;
+let editUrunId=null;
+let editPersonelId=null;
+let editBoyaId=null;
+
+const uid=()=>("id_"+Math.random().toString(36).slice(2,10)+Date.now().toString(36));
+
+function today(){
+  const d=new Date();
+  const y=d.getFullYear();
+  const m=String(d.getMonth()+1).padStart(2,"0");
+  const day=String(d.getDate()).padStart(2,"0");
+  return `${y}-${m}-${day}`;
+}
+
+function localDateFromTimestamp(ts){
+  if(!ts) return "";
+  const d = new Date(ts);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+function fmtTL(n){
+  return "₺"+Number(n||0).toLocaleString("tr-TR",{ maximumFractionDigits:0 });
+}
+
+function esc(s){
+  return String(s??"")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
+}
+
+function arr(value){
+  if(Array.isArray(value)) return value;
+  if(value && typeof value==="object") return Object.values(value);
+  return [];
+}
+
+function arrWithIds(value){
+  if(Array.isArray(value)){
+    return value.map((item, idx) => {
+      if(item && typeof item === "object"){
+        return { ...item, id: item.id || ("tmp_"+idx) };
+      }
+      return item;
+    });
+  }
+  if(value && typeof value === "object"){
+    return Object.entries(value).map(([key, item]) => {
+      if(item && typeof item === "object"){
+        return { ...item, id: item.id || key };
+      }
+      return item;
+    });
+  }
+  return [];
+}
+
+function normalizeDB(val){
+  return {
+    musteriler: arrWithIds(val?.musteriler),
+    personeller: arrWithIds(val?.personeller),
+    randevular: arrWithIds(val?.randevular),
+    hizmetler: arrWithIds(val?.hizmetler),
+    urunler: arrWithIds(val?.urunler),
+    adisyonlar: arrWithIds(val?.adisyonlar),
+    boyaKayitlari: arrWithIds(val?.boyaKayitlari),
+    activeBill: val?.activeBill || null,
+    adminPass: val?.adminPass || "1234",
+    workHours: val?.workHours || { start:"09:00", end:"19:00", interval:30 }
+  };
+}
+
+function applyRolePermissions(){
+  const roleLabel = document.getElementById("role-label");
+  roleLabel.textContent = isAdmin ? "Yönetici Modu" : "Müdür Modu";
+  
+  document.querySelectorAll(".admin-only").forEach(el => {
+    if(isAdmin) el.classList.remove("hidden");
+    else el.classList.add("hidden");
+  });
+
+  document.querySelectorAll(".admin-only-tab").forEach(el => {
+    if(isAdmin) el.classList.remove("hidden");
+    else el.classList.add("hidden");
+  });
+
+  // Hizmet sekmesi artık herkese açık
+  const desc = document.getElementById("hizmet-desc");
+  if(desc){
+    desc.textContent = isAdmin 
+      ? "Fiyat alanına tıklayarak hizmet fiyatını anında güncelleyebilirsiniz."
+      : "Yeni hizmet ekleyebilirsiniz. Mevcut fiyatları sadece Yönetici düzenleyebilir.";
+  }
+
+  if(!isAdmin && currentTab !== "t-adisyon" && currentTab !== "t-musteri" && currentTab !== "t-randevu" && currentTab !== "t-personel" && currentTab !== "t-hizmet"){
+    go("t-adisyon");
+  }
+}
+
+function openAuthModal(){
+  const modal = document.getElementById("auth-modal");
+  const loginView = document.getElementById("auth-login-view");
+  const adminView = document.getElementById("auth-admin-view");
+
+  if(isAdmin){
+    loginView.classList.add("hidden");
+    adminView.classList.remove("hidden");
+  }else{
+    loginView.classList.remove("hidden");
+    adminView.classList.add("hidden");
+    document.getElementById("admin-pass-input").value = "";
+  }
+  modal.classList.remove("hidden");
+}
+
+function closeAuthModal(){
+  document.getElementById("auth-modal").classList.add("hidden");
+}
+
+function loginAdmin(){
+  const pass = document.getElementById("admin-pass-input").value.trim();
+  const correctPass = db.adminPass || "1234";
+
+  if(pass === correctPass){
+    isAdmin = true;
+    applyRolePermissions();
+    closeAuthModal();
+    toast("Yönetici girişi başarılı");
+  }else{
+    toast("Hatalı şifre!");
+  }
+}
+
+function logoutAdmin(){
+  isAdmin = false;
+  applyRolePermissions();
+  closeAuthModal();
+  toast("Müdür moduna geçildi");
+}
+
+function changePassword(){
+  const newPass = document.getElementById("new-pass-input").value.trim();
+  if(!newPass){
+    toast("Lütfen yeni bir şifre girin");
+    return;
+  }
+  db.adminPass = newPass;
+  save();
+  document.getElementById("new-pass-input").value = "";
+  toast("Şifre başarıyla güncellendi");
+}
+
+let saveTimer=null;
+function save(){
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(()=>{
+    rtdb.ref("adisyon_data")
+      .set(db)
+      .catch(err=>{
+        console.error(err);
+        toast("Veri kaydedilemedi. Firebase bağlantısını kontrol et.");
+      });
+  },80);
+}
+
+function seedDefaultData(){
+  db={
+    adminPass:"1234",
+    workHours:{ start:"09:00", end:"19:00", interval:30 },
+    musteriler:[
+      { id:"m1", ad:"Ayşe", soyad:"Yılmaz", tel:"0532 111 2233", not:"Koyu renk sever", photo:null, created:Date.now()-864e5*30 },
+      { id:"m2", ad:"Elif", soyad:"Kaya", tel:"0541 444 5566", not:"", photo:null, created:Date.now()-864e5*10 }
+    ],
+    personeller:[
+      { id:"p1", ad:"Funda", unvan:"Renk Uzmanı / Usta", tel:"0500 000 0000" },
+      { id:"p2", ad:"Ahmet", unvan:"Kesim Ustası", tel:"0500 111 2222" }
+    ],
+    randevular:[
+      { id:"r1", musteriId:"m1", personelId:"p1", tarih:today(), saat:"14:30", saatBitis:"15:30", hizmet:"Saç kesim + fön", not:"", status:"bekliyor" }
+    ],
+    hizmetler:[
+      {id:"h1",ad:"Saç kesim (kadın)",fiyat:0,kategori:"Kesim"},
+      {id:"h2",ad:"Boya komple",fiyat:0,kategori:"Renklendirme"},
+      {id:"h3",ad:"Fön",fiyat:0,kategori:"Diğer"}
+    ],
+    urunler:[
+      {id:"u1",ad:"Majirel Boya 7.1 Küllü",barkod:"BYA71",marka:"Majirel",fiyat:180,stok:12,min:3}
+    ],
+    adisyonlar:[],
+    boyaKayitlari:[],
+    activeBill:null
+  };
+
+  rtdb.ref("adisyon_data").set(db).then(()=>{
+    refreshUI();
+    toast("İlk kurulum tamamlandı");
+  });
+}
+
+rtdb.ref("adisyon_data").on("value", snapshot=>{
+  const val=snapshot.val();
+  if(val){
+    db=normalizeDB(val);
+    refreshUI();
+  }else{
+    seedDefaultData();
+  }
+}, error=>{
+  console.error(error);
+  toast("Firebase bağlantı hatası");
+});
+
+function toast(message){
+  document.querySelectorAll(".toast").forEach(x=>x.remove());
+  const t=document.createElement("div");
+  t.className="toast";
+  t.textContent=message;
+  document.body.appendChild(t);
+  setTimeout(()=>{ t.remove(); },2800);
+}
+
+function go(tab,skipScroll=false){
+  if(!isAdmin && tab !== "t-adisyon" && tab !== "t-musteri" && tab !== "t-randevu" && tab !== "t-personel" && tab !== "t-hizmet"){
+    toast("Bu alana sadece yönetici erişebilir");
+    return;
+  }
+  currentTab=tab;
+  ["t-panel","t-istatistik","t-musteri","t-personel","t-randevu","t-adisyon","t-stok","t-hizmet","t-boya"].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.classList.toggle("hidden",id!==tab);
+  });
+
+  document.querySelectorAll("nav.tabs button").forEach(btn=>{
+    btn.classList.toggle("on", btn.dataset.t===tab);
+  });
+
+  if(tab==="t-panel") renderPanel();
+  if(tab==="t-istatistik") renderIstatistikPage();
+  if(tab==="t-musteri") renderMusteriler();
+  if(tab==="t-personel") renderPersoneller();
+  if(tab==="t-randevu") renderRandevular();
+  if(tab==="t-adisyon") renderAdisyonPage();
+  if(tab==="t-stok") renderUrunler();
+  if(tab==="t-hizmet") renderHizmetler();
+  if(tab==="t-boya") renderBoyaPage();
+
+  fillPersonelSelects();
+
+  if(!skipScroll){
+    window.scrollTo({ top:0, behavior:"smooth" });
+  }
+}
+
+function refreshUI(){
+  applyRolePermissions();
+  go(currentTab,true);
+}
+
+function formatSaatAralik(r){
+  if(!r) return "";
+  const basla = r.saat || "";
+  const bitis = r.saatBitis || "";
+  if(bitis && bitis !== basla) return `${basla} - ${bitis}`;
+  return basla;
+}
+
+function fillPersonelSelects(){
+  const list = Array.isArray(db.personeller) ? db.personeller : [];
+  const options = `<option value="">Personel Seç (İsteğe Bağlı)</option>` +
+    list.map(p => {
+      const id = p.id || "";
+      const ad = p.ad || "İsimsiz";
+      const unvan = p.unvan || "Staff";
+      return `<option value="${esc(id)}">${esc(ad)} (${esc(unvan)})</option>`;
+    }).join("");
+
+  const rSel = document.getElementById("r-personel");
+  if(rSel){
+    const current = rSel.value;
+    rSel.innerHTML = options;
+    if(current && list.some(p => p.id === current)) rSel.value = current;
+  }
+
+  const bSel = document.getElementById("b-personel");
+  if(bSel){
+    const current = bSel.value;
+    bSel.innerHTML = options;
+    if(current && list.some(p => p.id === current)) bSel.value = current;
+  }
+}
+
+function renderPanel(){
+  const todayStr = today();
+  document.getElementById("today-line").textContent = `Bugün — ${todayStr}`;
+  document.getElementById("st-open").textContent = db.activeBill ? "1" : "0";
+
+  const todayCiro = db.adisyonlar
+    .filter(a => a.status === "paid" && localDateFromTimestamp(a.closedAt) === todayStr)
+    .reduce((sum, a) => sum + Number(a.total || 0), 0);
+  document.getElementById("st-ciro").textContent = fmtTL(todayCiro);
+
+  const todayRandevus = db.randevular.filter(r => r.tarih === todayStr && r.status !== "iptal").length;
+  document.getElementById("st-randevu").textContent = todayRandevus;
+
+  const openEl = document.getElementById("open-bills");
+  if(!db.activeBill){
+    openEl.innerHTML = `<div class="empty" style="padding:10px;">Açık adisyon yok</div>`;
+  } else {
+    const b = db.activeBill;
+    const p = db.personeller.find(x => x.id === b.personelId);
+    openEl.innerHTML = `
+      <div class="item-row" onclick="go('t-adisyon')" style="cursor:pointer">
+        <div>
+          <b>${esc(b.name)}</b>
+          <div class="mut small">${(b.items||[]).length} kalem işlem ${p ? '· ' + esc(p.ad) : ''}</div>
+        </div>
+        <span class="tag t-open">Açık</span>
+      </div>
+    `;
+  }
+
+  const appsEl = document.getElementById("today-apps");
+  const todaysList = db.randevular.filter(r => r.tarih === todayStr);
+  if(!todaysList.length){
+    appsEl.innerHTML = `<div class="empty" style="padding:10px;">Bugün randevu yok</div>`;
+  } else {
+    appsEl.innerHTML = todaysList.map(r => {
+      const m = db.musteriler.find(x => x.id === r.musteriId);
+      const p = db.personeller.find(x => x.id === r.personelId);
+      const isCanceled = r.status === "iptal";
+      return `
+        <div class="item-row">
+          <div>
+            <b>${m ? esc(m.ad + " " + m.soyad) : "Müşteri"}</b>
+            <div class="mut small">${esc(formatSaatAralik(r))} · ${esc(r.hizmet)} ${p ? '· 👤 ' + esc(p.ad) : ''}</div>
+          </div>
+          <span class="tag ${isCanceled ? 't-cancel' : 't-app'}">${isCanceled ? 'İptal' : 'Bugün'}</span>
+        </div>
+      `;
+    }).join("");
+  }
+
+  const lowEl = document.getElementById("low-stock");
+  const lowItems = db.urunler.filter(u => Number(u.stok||0) <= Number(u.min||0));
+  if(!lowItems.length){
+    lowEl.innerHTML = `<div class="empty" style="padding:10px;">Stok seviyeleri iyi</div>`;
+  } else {
+    lowEl.innerHTML = lowItems.map(u => `
+      <div class="item-row">
+        <div>
+          <b>${esc(u.ad)}</b>
+          <div class="mut small">Kritik seviye: ${u.min}</div>
+        </div>
+        <span class="tag t-low">Kalan: ${u.stok}</span>
+      </div>
+    `).join("");
+  }
+}
+
+function initStatSelects(){
+  const now = new Date();
+  const monthSel = document.getElementById("stat-month-select");
+  const yearSel = document.getElementById("stat-year-select");
+  
+  if(monthSel && monthSel.dataset.init !== "true"){
+    monthSel.value = now.getMonth();
+    monthSel.dataset.init = "true";
+  }
+  if(yearSel && yearSel.dataset.init !== "true"){
+    yearSel.value = now.getFullYear();
+    yearSel.dataset.init = "true";
+  }
+}
+
+function renderIstatistikPage(){
+  initStatSelects();
+  renderPanelStats();
+}
+
+function renderPanelStats(){
+  const now = new Date();
+  
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(now.getDate() - 6);
+  sevenDaysAgo.setHours(0,0,0,0);
+
+  const weekCiro = db.adisyonlar
+    .filter(a => a.status === "paid" && a.closedAt && new Date(a.closedAt) >= sevenDaysAgo)
+    .reduce((sum, a) => sum + Number(a.total || 0), 0);
+  
+  document.getElementById("st-week-ciro").textContent = fmtTL(weekCiro);
+
+  const currentMonth = now.getMonth();
+  const currentYear = now.getFullYear();
+  const thisMonthCiro = db.adisyonlar
+    .filter(a => {
+      if(a.status !== "paid" || !a.closedAt) return false;
+      const d = new Date(a.closedAt);
+      return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+    })
+    .reduce((sum, a) => sum + Number(a.total || 0), 0);
+  
+  document.getElementById("st-month-ciro-top").textContent = fmtTL(thisMonthCiro);
+
+  const selectedMonth = Number(document.getElementById("stat-month-select").value);
+  const selectedYear = Number(document.getElementById("stat-year-select").value);
+
+  const monthBills = db.adisyonlar.filter(a => {
+    if(a.status !== "paid" || !a.closedAt) return false;
+    const d = new Date(a.closedAt);
+    return d.getMonth() === selectedMonth && d.getFullYear() === selectedYear;
+  });
+
+  const monthCiro = monthBills.reduce((sum, a) => sum + Number(a.total || 0), 0);
+  const monthCount = monthBills.length;
+  const monthAvg = monthCount > 0 ? (monthCiro / monthCount) : 0;
+  
+  let monthProdCount = 0;
+  let nakitTotal = 0;
+  let kartTotal = 0;
+  let havaleTotal = 0;
+
+  monthBills.forEach(a => {
+    (a.items || []).forEach(it => {
+      if(it.type === "urun"){
+        monthProdCount += Number(it.qty || 1);
+      }
+    });
+
+    const odeme = (a.odeme || "nakit").toLowerCase();
+    if(odeme === "nakit") nakitTotal += Number(a.total || 0);
+    else if(odeme === "kart") kartTotal += Number(a.total || 0);
+    else if(odeme === "havale") havaleTotal += Number(a.total || 0);
+  });
+
+  document.getElementById("st-month-ciro").textContent = fmtTL(monthCiro);
+  document.getElementById("st-m-count").textContent = monthCount;
+  document.getElementById("st-m-avg").textContent = fmtTL(monthAvg);
+  document.getElementById("st-m-prod").textContent = monthProdCount;
+
+  const payEl = document.getElementById("stat-payment-breakdown");
+  if(monthCount === 0){
+    payEl.innerHTML = `<div class="empty" style="padding:10px;">Bu ay için kapanan adisyon verisi bulunamadı.</div>`;
+  } else {
+    payEl.innerHTML = `
+      <div class="item-row">
+        <span>💵 Nakit</span>
+        <b>${fmtTL(nakitTotal)}</b>
+      </div>
+      <div class="item-row">
+        <span>💳 Kredi Kartı</span>
+        <b>${fmtTL(kartTotal)}</b>
+      </div>
+      <div class="item-row">
+        <span>🏦 Havale / EFT</span>
+        <b>${fmtTL(havaleTotal)}</b>
+      </div>
+    `;
+  }
+}
+
+function searchCustomer(type){
+  const input=document.getElementById(type==="b"?"b-musteri-search":type==="r"?"r-musteri-search":"by-musteri-search");
+  const results=document.getElementById(type==="b"?"b-musteri-results":type==="r"?"r-musteri-results":"by-musteri-results");
+
+  if(!input||!results)return;
+  const q=input.value.trim().toLocaleLowerCase("tr-TR");
+
+  if(!q){
+    results.classList.add("hidden");
+    results.innerHTML="";
+    return;
+  }
+
+  const matches=db.musteriler.filter(m=>{
+    const text=((m.ad||"")+" "+(m.soyad||"")+" "+(m.tel||"")).toLocaleLowerCase("tr-TR");
+    return text.includes(q);
+  }).slice(0,20);
+
+  if(!matches.length){
+    results.innerHTML=`<div class="no-results">Müşteri bulunamadı</div>`;
+    results.classList.remove("hidden");
+    return;
+  }
+
+  results.innerHTML=matches.map(m=>{
+    const initials=((m.ad||"")[0]||"")+((m.soyad||"")[0]||"");
+    return `
+      <div class="customer-result" onclick="selectCustomer('${type}','${m.id}')">
+        <div class="mini-avatar">
+          ${m.photo?`<img src="${esc(m.photo)}">`:esc(initials.toUpperCase())}
+        </div>
+        <div>
+          <b>${esc(m.ad)} ${esc(m.soyad)}</b>
+          <div class="mut small">${esc(m.tel||"Telefon yok")}</div>
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  results.classList.remove("hidden");
+}
+
+function selectCustomer(type,id){
+  const m=db.musteriler.find(x=>x.id===id);
+  if(!m)return;
+
+  selectedCustomers[type]=id;
+
+  const input=document.getElementById(type==="b"?"b-musteri-search":type==="r"?"r-musteri-search":"by-musteri-search");
+  const results=document.getElementById(type==="b"?"b-musteri-results":type==="r"?"r-musteri-results":"by-musteri-results");
+  const selected=document.getElementById(type==="b"?"b-selected-customer":type==="r"?"r-selected-customer":"by-selected-customer");
+
+  input.value="";
+  results.classList.add("hidden");
+  results.innerHTML="";
+
+  const initials=((m.ad||"")[0]||"")+((m.soyad||"")[0]||"");
+
+  selected.innerHTML=`
+    <div class="mini-avatar">
+      ${m.photo?`<img src="${esc(m.photo)}">`:esc(initials.toUpperCase())}
+    </div>
+    <div style="flex:1">
+      <b>${esc(m.ad)} ${esc(m.soyad)}</b>
+      <div class="mut small">${esc(m.tel||"Telefon yok")}</div>
+    </div>
+    <span class="check">✓ Seçildi</span>
+    <button type="button" class="btn2 customer-clear" onclick="clearCustomer('${type}')">Değiştir</button>
+  `;
+  selected.classList.remove("hidden");
+}
+
+function clearCustomer(type){
+  selectedCustomers[type]=null;
+
+  const input=document.getElementById(type==="b"?"b-musteri-search":type==="r"?"r-musteri-search":"by-musteri-search");
+  const results=document.getElementById(type==="b"?"b-musteri-results":type==="r"?"r-musteri-results":"by-musteri-results");
+  const selected=document.getElementById(type==="b"?"b-selected-customer":type==="r"?"r-selected-customer":"by-selected-customer");
+
+  input.value="";
+  selected.innerHTML="";
+  selected.classList.add("hidden");
+  results.innerHTML="";
+  results.classList.add("hidden");
+  input.focus();
+}
+
+/* PERSONEL İŞLEMLERİ */
+function showPersonelForm(id=null){
+  editPersonelId = id;
+  document.getElementById("personel-form").classList.remove("hidden");
+  document.getElementById("pf-title").textContent = id ? "Personel Düzenle" : "Yeni Personel";
+  if(id){
+    const p = db.personeller.find(x => x.id === id);
+    if(p){
+      document.getElementById("p-ad").value = p.ad || "";
+      document.getElementById("p-unvan").value = p.unvan || "";
+      document.getElementById("p-tel").value = p.tel || "";
+    }
+  } else {
+    document.getElementById("p-ad").value = "";
+    document.getElementById("p-unvan").value = "";
+    document.getElementById("p-tel").value = "";
+  }
+}
+
+function hidePersonelForm(){
+  document.getElementById("personel-form").classList.add("hidden");
+  editPersonelId = null;
+}
+
+function savePersonel(){
+  const ad = document.getElementById("p-ad").value.trim();
+  const unvan = document.getElementById("p-unvan").value.trim();
+  const tel = document.getElementById("p-tel").value.trim();
+
+  if(!ad){
+    toast("Personel adı gerekli");
+    return;
+  }
+
+  if(editPersonelId){
+    const p = db.personeller.find(x => x.id === editPersonelId);
+    if(p){ p.ad = ad; p.unvan = unvan; p.tel = tel; }
+  } else {
+    db.personeller.push({ id: uid(), ad, unvan, tel });
+  }
+
+  save();
+  hidePersonelForm();
+  renderPersoneller();
+  fillPersonelSelects();
+  toast("Personel kaydedildi");
+}
+
+function delPersonel(event, id){
+  if(event) event.stopPropagation();
+  if(!confirm("Bu personeli silmek istediğinize emin misiniz?")) return;
+  db.personeller = db.personeller.filter(x => x.id !== id);
+  save();
+  renderPersoneller();
+  fillPersonelSelects();
+  toast("Personel silindi");
+}
+
+function renderPersoneller(){
+  const el = document.getElementById("personel-list");
+  if(!db.personeller.length){
+    el.innerHTML = `<div class="card empty">Personel kaydı yok</div>`;
+    return;
+  }
+
+  el.innerHTML = db.personeller.map(p => `
+    <div class="card">
+      <div class="item-row">
+        <div>
+          <b>${esc(p.ad)}</b>
+          <div class="mut small">${esc(p.unvan || "Personel")} · ${esc(p.tel || "Tel Yok")}</div>
+        </div>
+        <div class="row" style="flex:0 0 auto; gap:6px;">
+          <button class="btn2" style="width:auto;padding:6px 12px;" onclick="showPersonelForm('${p.id}')">Düzenle</button>
+          <button class="btnred" style="width:auto;padding:6px 12px;" onclick="delPersonel(event, '${p.id}')">Sil</button>
+        </div>
+      </div>
+    </div>
+  `).join("");
+}
+
+/* RANDEVU SAAT AYARLARI */
+function showSaatAralikModal(){
+  const wh = db.workHours || { start:"09:00", end:"19:00", interval:30 };
+  document.getElementById("cfg-start").value = wh.start;
+  document.getElementById("cfg-end").value = wh.end;
+  document.getElementById("cfg-interval").value = wh.interval;
+  document.getElementById("saat-aralik-modal").classList.remove("hidden");
+}
+
+function closeSaatAralikModal(){
+  document.getElementById("saat-aralik-modal").classList.add("hidden");
+}
+
+function saveWorkHours(){
+  const start = document.getElementById("cfg-start").value;
+  const end = document.getElementById("cfg-end").value;
+  const interval = Number(document.getElementById("cfg-interval").value);
+
+  db.workHours = { start, end, interval };
+  save();
+  closeSaatAralikModal();
+  toast("Çalışma saatleri ve aralıklar güncellendi");
+}
+
+function populateTimeSelect(){
+  const selectBasla = document.getElementById("r-saat-basla");
+  const selectBitis = document.getElementById("r-saat-bitis");
+  if(!selectBasla || !selectBitis) return;
+
+  selectBasla.innerHTML = "";
+  selectBitis.innerHTML = "";
+
+  const wh = db.workHours || { start:"09:00", end:"19:00", interval:30 };
+  
+  let [sh, sm] = wh.start.split(":").map(Number);
+  let [eh, em] = wh.end.split(":").map(Number);
+
+  let current = sh * 60 + sm;
+  const endMin = eh * 60 + em;
+  const step = Number(wh.interval) || 30;
+
+  while(current <= endMin){
+    let h = Math.floor(current / 60);
+    let m = current % 60;
+    let timeStr = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+    selectBasla.innerHTML += `<option value="${timeStr}">${timeStr}</option>`;
+    selectBitis.innerHTML += `<option value="${timeStr}">${timeStr}</option>`;
+    current += step;
+  }
+}
+
+function showMusteriForm(id=null){
+  editMusteriId=id||null;
+  document.getElementById("musteri-form").classList.remove("hidden");
+  document.getElementById("mf-title").textContent=id?"Müşteri düzenle":"Yeni müşteri";
+
+  if(id){
+    const m=db.musteriler.find(x=>x.id===id);
+    if(!m)return;
+    document.getElementById("m-ad").value=m.ad||"";
+    document.getElementById("m-soyad").value=m.soyad||"";
+    document.getElementById("m-tel").value=m.tel||"";
+    document.getElementById("m-not").value=m.not||"";
+
+    if(m.photo){
+      document.getElementById("m-photo-img").src=m.photo;
+      document.getElementById("m-photo-img").classList.remove("hidden");
+      document.getElementById("m-photo-ph").classList.add("hidden");
+    }else{
+      resetPhoto();
+    }
+  }else{
+    document.getElementById("m-ad").value="";
+    document.getElementById("m-soyad").value="";
+    document.getElementById("m-tel").value="";
+    document.getElementById("m-not").value="";
+    resetPhoto();
+  }
+}
+
+function resetPhoto(){
+  const img=document.getElementById("m-photo-img");
+  const ph=document.getElementById("m-photo-ph");
+  img.src="";
+  img.classList.add("hidden");
+  ph.classList.remove("hidden");
+  document.getElementById("m-photo-file").value="";
+}
+
+function hideMusteriForm(){
+  document.getElementById("musteri-form").classList.add("hidden");
+  editMusteriId=null;
+}
+
+function loadPhoto(input,imgId,phId){
+  const file=input.files?.[0];
+  if(!file)return;
+  if(file.size>5*1024*1024){
+    toast("Fotoğraf 5 MB'dan küçük olmalı");
+    input.value="";
+    return;
+  }
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const img=document.getElementById(imgId);
+    img.src=e.target.result;
+    img.classList.remove("hidden");
+    document.getElementById(phId).classList.add("hidden");
+  };
+  reader.readAsDataURL(file);
+}
+
+function saveMusteri(){
+  const ad=document.getElementById("m-ad").value.trim();
+  const soyad=document.getElementById("m-soyad").value.trim();
+
+  if(!ad||!soyad){
+    toast("Ad ve soyad gerekli");
+    return;
+  }
+
+  const photoEl=document.getElementById("m-photo-img");
+  const photo=photoEl.classList.contains("hidden")?null:photoEl.src;
+
+  const data={
+    ad,
+    soyad,
+    tel:document.getElementById("m-tel").value.trim(),
+    not:document.getElementById("m-not").value.trim(),
+    photo
+  };
+
+  if(editMusteriId){
+    const m=db.musteriler.find(x=>x.id===editMusteriId);
+    if(!m)return;
+    Object.assign(m,data);
+  }else{
+    db.musteriler.unshift({
+      id:uid(),
+      ...data,
+      created:Date.now()
+    });
+  }
+
+  save();
+  hideMusteriForm();
+  toast("Müşteri kaydedildi");
+}
+
+function delMusteri(event, id){
+  if(event) event.stopPropagation();
+  if(!isAdmin){
+    toast("Müşteri silme sadece yönetici tarafından yapılabilir");
+    return;
+  }
+  if(!confirm("Bu müşteriyi silmek istediğinize emin misiniz?")) return;
+  db.musteriler = db.musteriler.filter(x => x.id !== id);
+  save();
+  renderMusteriler();
+  toast("Müşteri silindi");
+}
+
+function renderMusteriler(){
+  const q=(document.getElementById("m-search")?.value||"").trim().toLocaleLowerCase("tr-TR");
+  const list=db.musteriler.filter(m=>{
+    const full=((m.ad||"")+" "+(m.soyad||"")+" "+(m.tel||"")).toLocaleLowerCase("tr-TR");
+    return !q||full.includes(q);
+  });
+
+  const el=document.getElementById("musteri-list");
+  if(!list.length){
+    el.innerHTML=`
+      <div class="card empty">
+        <div class="big">👤</div>
+        ${q?"Müşteri bulunamadı":"Henüz müşteri yok"}
+      </div>
+    `;
+    return;
+  }
+
+  el.innerHTML=list.map(m=>{
+    const initials=((m.ad||"")[0]||"")+((m.soyad||"")[0]||"");
+    return `
+      <div class="card">
+        <div class="row" style="align-items:center;justify-content:flex-start;gap:12px;cursor:pointer" onclick="showMusteriForm('${m.id}')">
+          <div class="avatar">
+            ${m.photo?`<img src="${esc(m.photo)}">`:esc(initials.toUpperCase())}
+          </div>
+          <div style="flex:1">
+            <b>${esc(m.ad)} ${esc(m.soyad)}</b>
+            <div class="mut">${esc(m.tel||"Telefon yok")}</div>
+            ${m.not?`<div class="mut small">${esc(m.not)}</div>`:""}
+          </div>
+        </div>
+        ${isAdmin ? `
+          <div class="row" style="margin-top:8px">
+            <button class="btnred" style="width:auto;padding:6px 12px" onclick="delMusteri(event,'${m.id}')">Sil</button>
+          </div>
+        ` : ''}
+      </div>
+    `;
+  }).join("");
+}
+
+function showRandevuForm(){
+  document.getElementById("r-tarih").value=today();
+  selectedCustomers.r=null;
+  clearCustomer("r");
+
+  fillPersonelSelects();
+  populateTimeSelect();
+  document.getElementById("randevu-form").classList.remove("hidden");
+}
+
+function hideRandevuForm(){
+  document.getElementById("randevu-form").classList.add("hidden");
+}
+
+function saveRandevu(){
+  const mid=selectedCustomers.r;
+  if(!mid){
+    toast("Önce müşteri seç");
+    return;
+  }
+
+  const pid = document.getElementById("r-personel").value;
+  const tarih=document.getElementById("r-tarih").value||today();
+  const saatBasla = document.getElementById("r-saat-basla").value || "14:00";
+  const saatBitis = document.getElementById("r-saat-bitis").value || saatBasla;
+  const hizmet=document.getElementById("r-hizmet").value.trim()||"Hizmet";
+  const not=document.getElementById("r-not").value.trim();
+
+  const [bh, bm] = saatBasla.split(":").map(Number);
+  const [eh, em] = saatBitis.split(":").map(Number);
+  const baslaMin = bh * 60 + bm;
+  const bitisMin = eh * 60 + em;
+  if(bitisMin < baslaMin){
+    toast("Bitiş saati başlangıç saatinden önce olamaz");
+    return;
+  }
+
+  db.randevular.unshift({
+    id:uid(),
+    musteriId:mid,
+    personelId:pid,
+    tarih,
+    saat: saatBasla,
+    saatBitis: saatBitis,
+    hizmet,
+    not,
+    status:"bekliyor"
+  });
+
+  save();
+  hideRandevuForm();
+  renderRandevular();
+  toast("Randevu eklendi");
+}
+
+function renderRandevular(){
+  fillPersonelSelects();
+
+  const el=document.getElementById("randevu-list");
+  const sorted=[...db.randevular].sort((a,b)=>
+    ((a.tarih||"")+(a.saat||"")).localeCompare((b.tarih||"")+(b.saat||""))
+  );
+
+  if(!sorted.length){
+    el.innerHTML=`
+      <div class="card empty">
+        <div class="big">📅</div>
+        Randevu yok
+      </div>
+    `;
+    return;
+  }
+
+  el.innerHTML=sorted.map(r=>{
+    const m=db.musteriler.find(x=>x.id===r.musteriId);
+    const p=db.personeller.find(x=>x.id===r.personelId);
+    const isToday=r.tarih===today();
+    const isCanceled = r.status === "iptal";
+
+    return `
+      <div class="card" style="${isCanceled ? 'opacity:0.6;' : ''}">
+        <div class="row" style="align-items:center">
+          <div>
+            <b>${m?esc(m.ad+" "+m.soyad):"Müşteri bulunamadı"}</b>
+            <div class="mut">${esc(r.tarih)} · ${esc(formatSaatAralik(r))} · ${esc(r.hizmet)}</div>
+            ${p ? `<div class="mut small" style="color:var(--gold)">✂️ Personel: ${esc(p.ad)}</div>` : ''}
+            ${r.not?`<div class="mut small">${esc(r.not)}</div>`:""}
+          </div>
+          <span class="tag ${isCanceled ? 't-cancel' : (isToday?"t-app":"t-ok")}">
+            ${isCanceled ? 'İptal Edildi' : (isToday?"Bugün":esc(r.status||"bekliyor"))}
+          </span>
+        </div>
+        <div class="row" style="margin-top:8px">
+          ${!isCanceled ? `
+            <button class="btn2" onclick="startBillFromRandevu('${r.id}')">🧾 Adisyon aç</button>
+            <button class="btn2" style="border-color:var(--red);color:var(--red)" onclick="cancelRandevu('${r.id}')">İptal Et</button>
+          ` : ''}
+          <button class="btnred" style="flex:0 0 60px" onclick="delRandevu(event,'${r.id}')">Sil</button>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+function cancelRandevu(id){
+  const r = db.randevular.find(x => x.id === id);
+  if(r){
+    r.status = "iptal";
+    save();
+    renderRandevular();
+    toast("Randevu iptal edildi");
+  }
+}
+
+function delRandevu(event,id){
+  if(event)event.stopPropagation();
+  if(!confirm("Bu randevu silinsin mi?"))return;
+  db.randevular=db.randevular.filter(x=>x.id!==id);
+  save();
+  renderRandevular();
+  toast("Randevu silindi");
+}
+
+function startBillFromRandevu(id){
+  const r=db.randevular.find(x=>x.id===id);
+  if(!r)return;
+  go("t-adisyon");
+  setTimeout(()=>{
+    selectCustomer("b",r.musteriId);
+    if(r.personelId){
+      const pSel = document.getElementById("b-personel");
+      if(pSel) pSel.value = r.personelId;
+    }
+    createBill();
+  },80);
+}
+
+function showHizmetForm(){ 
+  document.getElementById("hizmet-form").classList.remove("hidden"); 
+  document.getElementById("h-kategori").value = "";
+  document.getElementById("h-ad").value = "";
+  document.getElementById("h-fiyat").value = "";
+}
+function hideHizmetForm(){ document.getElementById("hizmet-form").classList.add("hidden"); }
+
+function saveHizmet(){
+  const ad=document.getElementById("h-ad").value.trim();
+  const kat=(document.getElementById("h-kategori").value || "Diğer").trim() || "Diğer";
+  const fiyat=Math.max(0, Number(document.getElementById("h-fiyat").value)||0);
+
+  if(!ad){
+    toast("Hizmet adı gerekli");
+    return;
+  }
+
+  db.hizmetler.push({ id:uid(), ad, kategori:kat, fiyat });
+  save();
+  document.getElementById("h-ad").value="";
+  document.getElementById("h-fiyat").value="";
+  document.getElementById("h-kategori").value="";
+  hideHizmetForm();
+  renderHizmetler();
+  toast("Hizmet eklendi");
+}
+
+function updateHizmetFiyat(id, val){
+  if(!isAdmin){
+    toast("Fiyat düzenleme sadece yönetici tarafından yapılabilir");
+    renderHizmetler();
+    return;
+  }
+  const newPrice = Math.max(0, Number(val) || 0);
+  const h = db.hizmetler.find(x => x.id === id);
+  if(h){
+    h.fiyat = newPrice;
+    save();
+    toast(`${h.ad} fiyatı güncellendi: ₺${newPrice}`);
+  }
+}
+
+function renderHizmetler(){
+  const el=document.getElementById("hizmet-list");
+  const q=(document.getElementById("h-search")?.value||"").trim().toLocaleLowerCase("tr-TR");
+  const filtered = db.hizmetler.filter(h => !q || (h.ad||"").toLocaleLowerCase("tr-TR").includes(q));
+
+  if(!filtered.length){
+    el.innerHTML=`<div class="card empty">Hizmet bulunamadı</div>`;
+    return;
+  }
+
+  const kategMap = {};
+  filtered.forEach(h => {
+    const k = h.kategori || "Diğer";
+    if(!kategMap[k]) kategMap[k] = [];
+    kategMap[k].push(h);
+  });
+
+  let html = "";
+  for(const kat in kategMap){
+    html += `<h2 style="color:var(--acc2);margin-top:10px">${esc(kat)}</h2>`;
+    html += kategMap[kat].map(h=>`
+      <div class="card">
+        <div class="item-row">
+          <div style="flex:1">
+            <b>${esc(h.ad)}</b>
+            <div class="mut small">${esc(h.kategori||"Diğer")}</div>
+          </div>
+          <div style="flex:0 0 110px; text-align:right">
+            ${isAdmin ? `
+              <input 
+                type="number" 
+                min="0" 
+                value="${Number(h.fiyat||0)}" 
+                style="margin-bottom:0;padding:6px 8px;font-size:0.9rem;text-align:right" 
+                onchange="updateHizmetFiyat('${h.id}', this.value)"
+                placeholder="₺ Fiyat">
+            ` : `
+              <div class="price-readonly">${fmtTL(h.fiyat)}</div>
+            `}
+          </div>
+        </div>
+        ${isAdmin ? `
+          <button class="btnred" style="margin-top:6px;width:auto;padding:6px 12px" onclick="delHizmet(event,'${h.id}')">Sil</button>
+        ` : ''}
+      </div>
+    `).join("");
+  }
+  el.innerHTML = html;
+}
+
+function delHizmet(event,id){
+  if(event)event.stopPropagation();
+  if(!isAdmin){
+    toast("Hizmet silme sadece yönetici tarafından yapılabilir");
+    return;
+  }
+  if(!confirm("Bu hizmet silinsin mi?"))return;
+  db.hizmetler=db.hizmetler.filter(x=>x.id!==id);
+  save();
+  renderHizmetler();
+  toast("Hizmet silindi");
+}
+
+function showUrunForm(id=null){
+  editUrunId=id||null;
+  document.getElementById("urun-form").classList.remove("hidden");
+  document.getElementById("uf-title").textContent=id?"Ürün düzenle":"Yeni ürün";
+
+  if(id){
+    const u=db.urunler.find(x=>x.id===id);
+    if(!u)return;
+    document.getElementById("u-marka").value=u.marka||"";
+    document.getElementById("u-ad").value=u.ad||"";
+    document.getElementById("u-barkod").value=u.barkod||"";
+    document.getElementById("u-fiyat").value=u.fiyat??0;
+    document.getElementById("u-stok").value=u.stok??0;
+    document.getElementById("u-min").value=u.min??0;
+  }else{
+    ["u-ad","u-barkod","u-fiyat","u-stok","u-min","u-marka"].forEach(id=>{
+      document.getElementById(id).value="";
+    });
+  }
+}
+
+function hideUrunForm(){
+  document.getElementById("urun-form").classList.add("hidden");
+  editUrunId=null;
+}
+
+function saveUrun(){
+  const ad=document.getElementById("u-ad").value.trim();
+  if(!ad){
+    toast("Ürün adı gerekli");
+    return;
+  }
+
+  const data={
+    ad,
+    marka:document.getElementById("u-marka").value,
+    barkod:document.getElementById("u-barkod").value.trim(),
+    fiyat:Math.max(0, Number(document.getElementById("u-fiyat").value)||0),
+    stok:Math.max(0, Number(document.getElementById("u-stok").value)||0),
+    min:Math.max(0, Number(document.getElementById("u-min").value)||0)
+  };
+
+  if(editUrunId){
+    const u=db.urunler.find(x=>x.id===editUrunId);
+    if(!u)return;
+    Object.assign(u,data);
+  }else{
+    db.urunler.push({ id:uid(), ...data });
+  }
+
+  save();
+  hideUrunForm();
+  toast("Ürün kaydedildi");
+}
+
+function renderUrunler(){
+  const el=document.getElementById("urun-list");
+  if(!db.urunler.length){
+    el.innerHTML=`<div class="card empty">Ürün yok</div>`;
+    return;
+  }
+
+  el.innerHTML=db.urunler.map(u=>{
+    const low=Number(u.stok||0)<=Number(u.min||0);
+    return `
+      <div class="card list-card" onclick="showUrunForm('${u.id}')">
+        <div class="item-row">
+          <div>
+            <b>${esc(u.ad)}</b>
+            <div class="mut small">
+              ${u.marka? `<span style="color:var(--acc2);font-weight:bold">${esc(u.marka)}</span> · `: ""}
+              ${esc(u.barkod||"Barkod yok")} · ${fmtTL(u.fiyat)}
+            </div>
+          </div>
+          <span class="stock-badge tag ${low?"t-low":"t-ok"}">Stok: ${Number(u.stok||0)}</span>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+function openNewBillPage(){
+  go("t-adisyon");
+  setTimeout(()=>{ resetBillCreate(); },50);
+}
+
+function resetBillCreate(){
+  selectedCustomers.b=null;
+  clearCustomer("b");
+
+  fillPersonelSelects();
+
+  document.getElementById("bill-create").classList.remove("hidden");
+  document.getElementById("bill-active").classList.add("hidden");
+}
+
+function renderAdisyonPage(){
+  if(db.activeBill){
+    document.getElementById("bill-create").classList.add("hidden");
+    document.getElementById("bill-active").classList.remove("hidden");
+    renderActiveBill();
+  } else {
+    resetBillCreate();
+  }
+  renderClosedBills();
+  fillPersonelSelects();
+}
+
+function createBill(){
+  if(db.activeBill){
+    toast("Zaten açık bir adisyon var");
+    renderAdisyonPage();
+    return;
+  }
+
+  const mid=selectedCustomers.b;
+  if(!mid){
+    toast("Önce müşteri seç");
+    return;
+  }
+
+  const m=db.musteriler.find(x=>x.id===mid);
+  if(!m){
+    toast("Müşteri bulunamadı");
+    return;
+  }
+
+  const pid = document.getElementById("b-personel").value;
+
+  db.activeBill={
+    id:uid(),
+    musteriId:mid,
+    personelId:pid,
+    name:`${m.ad} ${m.soyad}`,
+    photo:m.photo||null,
+    items:[],
+    indirim:0,
+    created:Date.now(),
+    status:"open"
+  };
+
+  save();
+  document.getElementById("bill-create").classList.add("hidden");
+  document.getElementById("bill-active").classList.remove("hidden");
+  renderActiveBill();
+  toast("Adisyon açıldı");
+}
+
+function fillSvcProdSelects(){
+  const svc=document.getElementById("ba-svc");
+  const q=(document.getElementById("ba-svc-search")?.value||"").trim().toLocaleLowerCase("tr-TR");
+
+  const kategMap = {};
+  db.hizmetler.forEach(h => {
+    if(q && !(h.ad||"").toLocaleLowerCase("tr-TR").includes(q)) return;
+    const k = h.kategori || "Diğer";
+    if(!kategMap[k]) kategMap[k] = [];
+    kategMap[k].push(h);
+  });
+
+  let opts = `<option value="">Hizmet seç</option>`;
+  for(const kat in kategMap){
+    opts += `<optgroup label="-- ${esc(kat)} --">`;
+    opts += kategMap[kat].map(h=>
+      `<option value="${esc(h.id)}" data-p="${Number(h.fiyat||0)}">${esc(h.ad)} — ${fmtTL(h.fiyat)}</option>`
+    ).join("");
+    opts += `</optgroup>`;
+  }
+
+  svc.innerHTML = opts;
+  svc.onchange=()=>{
+    const option=svc.selectedOptions[0];
+    if(!option)return;
+    const price=option.dataset.p;
+    if(price!==undefined){
+      document.getElementById("ba-svc-price").value=price;
+    }
+  };
+
+  const prod=document.getElementById("ba-prod");
+  prod.innerHTML=`<option value="">Ürün seç</option>`+
+    db.urunler.map(u=>
+      `<option value="${esc(u.id)}" data-p="${Number(u.fiyat||0)}" data-s="${Number(u.stok||0)}">
+        ${u.marka ? '['+esc(u.marka)+'] ': ''}${esc(u.ad)} · Stok ${Number(u.stok||0)} · ${fmtTL(u.fiyat)}
+      </option>`
+    ).join("");
+
+  prod.onchange=()=>{
+    const option=prod.selectedOptions[0];
+    if(!option)return;
+    document.getElementById("ba-prod-price").value=option.dataset.p||"";
+  };
+}
+
+function renderActiveBill(){
+  const b=db.activeBill;
+  if(!b)return;
+
+  document.getElementById("ba-name").textContent=b.name||"Müşteri";
+  document.getElementById("ba-meta").textContent=new Date(b.created||Date.now()).toLocaleString("tr-TR");
+  
+  const p = db.personeller.find(x => x.id === b.personelId);
+  document.getElementById("ba-personel-info").textContent = p ? `Personel: ${p.ad}` : '';
+
+  fillSvcProdSelects();
+
+  const itemsEl=document.getElementById("ba-items");
+  const items=Array.isArray(b.items)?b.items:[];
+
+  if(!items.length){
+    itemsEl.innerHTML=`<p class="mut">Henüz kalem yok</p>`;
+  }else{
+    itemsEl.innerHTML=items.map((it,i)=>`
+      <div class="item-row">
+        <div>
+          <b>${esc(it.name)}</b>
+          <div class="mut small">
+            ${it.type==="urun"?`${Number(it.qty||1)} adet · `:""}
+            ${fmtTL(it.price)}
+            ${Number(it.qty||1)>1?` × ${Number(it.qty||1)}`:""}
+          </div>
+        </div>
+        <div class="row" style="flex:0 0 auto;gap:6px;align-items:center">
+          <b>${fmtTL(Number(it.price||0)*Number(it.qty||1))}</b>
+          <button type="button" class="btn2" style="width:auto;padding:4px 8px" onclick="removeItem(event,${i})">✕</button>
+        </div>
+      </div>
+    `).join("");
+  }
+
+  document.getElementById("ba-total").textContent=fmtTL(billTotal(b));
+  document.getElementById("ba-indirim").value=b.indirim||"";
+}
+
+function billTotal(b){
+  if(!b||!Array.isArray(b.items)) return 0;
+  const sum=b.items.reduce((total,it)=>total+Number(it.price||0)*Number(it.qty||1),0);
+  return Math.max(0, sum-Number(b.indirim||0));
+}
+
+function addService(){
+  const b=db.activeBill;
+  if(!b){ toast("Önce adisyon aç"); return; }
+  if(!Array.isArray(b.items)) b.items=[];
+
+  const sid=document.getElementById("ba-svc").value;
+  const price=Number(document.getElementById("ba-svc-price").value);
+
+  if(!sid){ toast("Hizmet seç"); return; }
+  if(!Number.isFinite(price)||price<0){ toast("Geçerli bir fiyat gir"); return; }
+
+  const h=db.hizmetler.find(x=>x.id===sid);
+  if(!h){ toast("Hizmet bulunamadı"); return; }
+
+  b.items.push({ type:"hizmet", name:h.ad, price, qty:1 });
+  save();
+
+  document.getElementById("ba-svc").value="";
+  document.getElementById("ba-svc-price").value="";
+  renderActiveBill();
+  toast("Hizmet eklendi");
+}
+
+function addProduct(){
+  const b=db.activeBill;
+  if(!b){ toast("Önce adisyon aç"); return; }
+  if(!Array.isArray(b.items)) b.items=[];
+
+  const pid=document.getElementById("ba-prod").value;
+  if(!pid){ toast("Ürün seç"); return; }
+
+  const u=db.urunler.find(x=>x.id===pid);
+  if(!u){ toast("Ürün bulunamadı"); return; }
+
+  const qty=Math.max(1, Math.floor(Number(document.getElementById("ba-prod-qty").value)||1));
+  const enteredPrice=Number(document.getElementById("ba-prod-price").value);
+  const price=Number.isFinite(enteredPrice)&&enteredPrice>=0 ? enteredPrice : Number(u.fiyat||0);
+  const stok=Number(u.stok||0);
+
+  if(stok<qty){
+    toast(`Yetersiz stok! Kalan: ${stok}`);
+    return;
+  }
+
+  u.stok=stok-qty;
+  b.items.push({ type:"urun", urunId:pid, name:u.ad, price, qty });
+  save();
+
+  document.getElementById("ba-prod").value="";
+  document.getElementById("ba-prod-qty").value="1";
+  document.getElementById("ba-prod-price").value="";
+  renderActiveBill();
+  toast(`${u.ad} satıldı · ${qty} stok düştü`);
+}
+
+function removeItem(event,index){
+  if(event)event.stopPropagation();
+  const b=db.activeBill;
+  if(!b||!Array.isArray(b.items)) return;
+
+  const item=b.items[index];
+  if(!item)return;
+
+  if(item.type==="urun"&&item.urunId){
+    const u=db.urunler.find(x=>x.id===item.urunId);
+    if(u){
+      u.stok=Number(u.stok||0)+Number(item.qty||1);
+    }
+  }
+
+  b.items.splice(index,1);
+  save();
+  renderActiveBill();
+  toast("Kalem silindi");
+}
+
+function applyIndirim(){
+  if(!isAdmin){
+    toast("İndirim sadece yönetici tarafından yapılabilir");
+    return;
+  }
+  const b=db.activeBill;
+  if(!b)return;
+  const value=Math.max(0, Number(document.getElementById("ba-indirim").value)||0);
+  const subtotal=(b.items||[]).reduce((s,it)=>s+Number(it.price||0)*Number(it.qty||1),0);
+
+  b.indirim=Math.min(value, subtotal);
+  save();
+  renderActiveBill();
+  toast(b.indirim>0 ? `İndirim: ${fmtTL(b.indirim)}` : "İndirim kaldırıldı");
+}
+
+function cancelActiveBill(){
+  const b=db.activeBill;
+  if(!b) return;
+
+  if(!confirm("Açık olan bu adisyonu iptal etmek istediğinize emin misiniz? Bütün kalemler silinecektir.")){
+    return;
+  }
+
+  if(Array.isArray(b.items)){
+    b.items.forEach(item => {
+      if(item.type === "urun" && item.urunId){
+        const u = db.urunler.find(x => x.id === item.urunId);
+        if(u){
+          u.stok = Number(u.stok||0) + Number(item.qty||1);
+        }
+      }
+    });
+  }
+
+  db.activeBill = null;
+  save();
+  resetBillCreate();
+  toast("Adisyon iptal edildi ve stoklar geri yüklendi");
+  renderAdisyonPage();
+}
+
+function closeBill(odeme){
+  const b=db.activeBill;
+  if(!b){ toast("Açık adisyon yok"); return; }
+  if(!Array.isArray(b.items)||!b.items.length){ toast("Kalem eklemeden kapatılamaz"); return; }
+
+  const total=billTotal(b);
+  if(total<0){ toast("Geçersiz toplam"); return; }
+
+  b.status="paid";
+  b.odeme=odeme;
+  b.closedAt=Date.now();
+  b.total=total;
+
+  if(!Array.isArray(db.adisyonlar)) db.adisyonlar=[];
+  db.adisyonlar.unshift({ ...b });
+
+  if(b.musteriId && b.items.some(it=>/boya/i.test(it.name||""))){
+    const boyaItem=b.items.find(it=>/boya/i.test(it.name||""));
+    db.boyaKayitlari.unshift({
+      id:uid(),
+      musteriId:b.musteriId,
+      tarih:today(),
+      renk:boyaItem?.name||"Boya",
+      marka:"",
+      formul:"",
+      not:"Adisyon: "+b.id,
+      created:Date.now()
+    });
+  }
+
+  db.activeBill=null;
+  save();
+  resetBillCreate();
+  renderAdisyonPage();
+  
+  triggerCelebration(b.name, total);
+}
+
+function renderClosedBills(){
+  const el = document.getElementById("closed-bills");
+  if(!db.adisyonlar.length){
+    el.innerHTML = `<div class="empty" style="padding:10px;">Henüz kapanmış adisyon yok</div>`;
+    return;
+  }
+
+  el.innerHTML = db.adisyonlar.slice(0,10).map(a => {
+    const p = db.personeller.find(x => x.id === a.personelId);
+    return `
+      <div class="item-row" onclick="openEditClosedBillModal('${a.id}')" style="cursor:pointer">
+        <div>
+          <b>${esc(a.name)}</b>
+          <div class="mut small">${new Date(a.closedAt||Date.now()).toLocaleDateString("tr-TR")} · ${esc(a.odeme||"")} ${p ? '· ' + esc(p.ad) : ''}</div>
+        </div>
+        <b style="color:var(--green)">${fmtTL(a.total)}</b>
+      </div>
+    `;
+  }).join("");
+}
+
+/* ========== BOYA KAYITLARI ========== */
+function showBoyaForm(id=null){
+  editBoyaId = id || null;
+  document.getElementById("boya-form").classList.remove("hidden");
+  document.getElementById("by-form-title").textContent = id ? "Boya kaydını düzenle" : "Yeni boya / ziyaret kaydı";
+
+  if(id){
+    const b = db.boyaKayitlari.find(x => x.id === id);
+    if(!b) return;
+
+    selectedCustomers.by = b.musteriId;
+    const m = db.musteriler.find(x => x.id === b.musteriId);
+    if(m){
+      selectCustomer("by", b.musteriId);
+    }
+
+    document.getElementById("by-tarih").value = b.tarih || today();
+    document.getElementById("by-marka").value = b.marka || "";
+    document.getElementById("by-renk").value = b.renk || "";
+    document.getElementById("by-formul").value = b.formul || "";
+    document.getElementById("by-not").value = b.not || "";
+  } else {
+    if(!selectedCustomers.by){
+      clearCustomer("by");
+    }
+    document.getElementById("by-tarih").value = today();
+    document.getElementById("by-marka").value = "";
+    document.getElementById("by-renk").value = "";
+    document.getElementById("by-formul").value = "";
+    document.getElementById("by-not").value = "";
+  }
+
+  document.getElementById("boya-form").scrollIntoView({ behavior:"smooth", block:"start" });
+}
+
+function hideBoyaForm(){
+  document.getElementById("boya-form").classList.add("hidden");
+  editBoyaId = null;
+}
+
+function saveBoya(){
+  const mid = selectedCustomers.by;
+  if(!mid){ toast("Önce müşteri seç"); return; }
+
+  const tarih = document.getElementById("by-tarih").value || today();
+  const marka = document.getElementById("by-marka").value;
+  const renk = document.getElementById("by-renk").value.trim();
+  const formul = document.getElementById("by-formul").value.trim();
+  const not = document.getElementById("by-not").value.trim();
+
+  if(editBoyaId){
+    const b = db.boyaKayitlari.find(x => x.id === editBoyaId);
+    if(b){
+      b.musteriId = mid;
+      b.tarih = tarih;
+      b.marka = marka;
+      b.renk = renk;
+      b.formul = formul;
+      b.not = not;
+    }
+  } else {
+    db.boyaKayitlari.unshift({
+      id: uid(),
+      musteriId: mid,
+      tarih,
+      marka,
+      renk,
+      formul,
+      not,
+      created: Date.now()
+    });
+  }
+
+  save();
+  hideBoyaForm();
+  renderBoyaPage();
+  toast(editBoyaId ? "Boya kaydı güncellendi" : "Boya kaydı eklendi");
+}
+
+function delBoya(event, id){
+  if(event) event.stopPropagation();
+  if(!confirm("Bu boya kaydını silmek istediğinize emin misiniz?")) return;
+  db.boyaKayitlari = db.boyaKayitlari.filter(x => x.id !== id);
+  save();
+  renderBoyaPage();
+  toast("Boya kaydı silindi");
+}
+
+function renderBoyaPage(){
+  const el = document.getElementById("boya-list");
+  const q = (document.getElementById("by-list-search")?.value || "").trim().toLocaleLowerCase("tr-TR");
+
+  let list = [...db.boyaKayitlari].sort((a,b) => (b.tarih||"").localeCompare(a.tarih||"") || (b.created||0) - (a.created||0));
+
+  if(q){
+    list = list.filter(b => {
+      const m = db.musteriler.find(x => x.id === b.musteriId);
+      const name = m ? ((m.ad||"") + " " + (m.soyad||"")).toLocaleLowerCase("tr-TR") : "";
+      const text = (name + " " + (b.renk||"") + " " + (b.marka||"") + " " + (b.formul||"") + " " + (b.not||"")).toLocaleLowerCase("tr-TR");
+      return text.includes(q);
+    });
+  }
+
+  if(!list.length){
+    el.innerHTML = `<div class="empty" style="padding:16px;">${q ? "Arama sonucu bulunamadı" : "Boya kaydı yok"}</div>`;
+    return;
+  }
+
+  el.innerHTML = list.map(b => {
+    const m = db.musteriler.find(x => x.id === b.musteriId);
+    const name = m ? esc(m.ad + " " + m.soyad) : "Müşteri";
+    return `
+      <div class="card list-card" onclick="showBoyaForm('${b.id}')" style="cursor:pointer">
+        <div class="item-row" style="align-items:flex-start">
+          <div style="flex:1">
+            <b>${name}</b>
+            <div class="mut small">${esc(b.tarih)} · ${b.marka ? esc(b.marka) + " · " : ""}${esc(b.renk || "Boya")}</div>
+            ${b.formul ? `<div class="boya-formul">${esc(b.formul)}</div>` : ""}
+            ${b.not ? `<div class="mut small" style="margin-top:4px">${esc(b.not)}</div>` : ""}
+          </div>
+        </div>
+        <div class="row" style="margin-top:8px" onclick="event.stopPropagation()">
+          <button class="btn2" style="width:auto;padding:6px 12px" onclick="showBoyaForm('${b.id}')">Düzenle</button>
+          <button class="btnred" style="width:auto;padding:6px 12px" onclick="delBoya(event,'${b.id}')">Sil</button>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+let audioCtx = null;
+function getAudioContext() {
+  if (!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+  if (audioCtx.state === 'suspended') { audioCtx.resume(); }
+  return audioCtx;
+}
+
+function playLaunchSound() {
+  try {
+    const ctx = getAudioContext();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(300, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(1200, ctx.currentTime + 0.4);
+    gain.gain.setValueAtTime(0.05, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.4);
+  } catch (e) { console.log("Audio play error", e); }
+}
+
+function playExplosionSound() {
+  try {
+    const ctx = getAudioContext();
+    const bufferSize = ctx.sampleRate * 0.5;
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) { data[i] = Math.random() * 2 - 1; }
+    const noise = ctx.createBufferSource();
+    noise.buffer = buffer;
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(800, ctx.currentTime);
+    filter.frequency.exponentialRampToValueAtTime(40, ctx.currentTime + 0.5);
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+    noise.start();
+    noise.stop(ctx.currentTime + 0.5);
+  } catch (e) { console.log("Audio play error", e); }
+}
+
+let animationId = null;
+
+function triggerCelebration(customerName, total) {
+  const modal = document.getElementById("congrats-modal");
+  const msg = document.getElementById("congrats-msg");
+  msg.textContent = `${customerName} için ${fmtTL(total)} tutarındaki adisyon kapatıldı.`;
+  modal.classList.remove("hidden");
+  startFireworks();
+}
+
+function closeCongratsModal() {
+  document.getElementById("congrats-modal").classList.add("hidden");
+  stopFireworks();
+}
+
+function startFireworks() {
+  const canvas = document.getElementById("fireworks-canvas");
+  canvas.classList.remove("hidden");
+  const ctx = canvas.getContext("2d");
+
+  let width = (canvas.width = window.innerWidth);
+  let height = (canvas.height = window.innerHeight);
+
+  window.onresize = () => {
+    width = canvas.width = window.innerWidth;
+    height = canvas.height = window.innerHeight;
+  };
+
+  const particles = [];
+  const fireworks = [];
+  const colors = ["#f5c04e", "#e85d75", "#3dd68c", "#5b8cff", "#ffffff", "#ff6b6b", "#e066ff"];
+
+  class Firework {
+    constructor(startX, startY, targetX, targetY) {
+      this.x = startX;
+      this.y = startY;
+      this.startX = startX;
+      this.startY = startY;
+      this.targetX = targetX;
+      this.targetY = targetY;
+      this.distanceToTarget = Math.hypot(targetX - startX, targetY - startY);
+      this.distanceTraveled = 0;
+      this.coordinates = [];
+      this.coordinateCount = 3;
+      while (this.coordinateCount--) {
+        this.coordinates.push([this.x, this.y]);
+      }
+      this.angle = Math.atan2(targetY - startY, targetX - startX);
+      this.speed = 3;
+      this.acceleration = 1.05;
+      this.brightness = Math.random() * 50 + 50;
+      
+      playLaunchSound();
+    }
+
+    update(index) {
+      this.coordinates.pop();
+      this.coordinates.unshift([this.x, this.y]);
+      this.speed *= this.acceleration;
+
+      const vx = Math.cos(this.angle) * this.speed;
+      const vy = Math.sin(this.angle) * this.speed;
+      this.distanceTraveled = Math.hypot(this.x - this.startX, this.y - this.startY);
+
+      if (this.distanceTraveled >= this.distanceToTarget) {
+        createExplosion(this.targetX, this.targetY);
+        fireworks.splice(index, 1);
+      } else {
+        this.x += vx;
+        this.y += vy;
+      }
+    }
+
+    draw() {
+      ctx.beginPath();
+      ctx.moveTo(this.coordinates[this.coordinates.length - 1][0], this.coordinates[this.coordinates.length - 1][1]);
+      ctx.lineTo(this.x, this.y);
+      ctx.strokeStyle = '#f5c04e';
+      ctx.stroke();
+    }
+  }
+
+  function createExplosion(x, y) {
+    playExplosionSound();
+    const particleCount = 80;
+    for (let i = 0; i < particleCount; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = Math.random() * 10 + 2;
+      particles.push({
+        x: x,
+        y: y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        alpha: 1,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        size: Math.random() * 3 + 2,
+        decay: Math.random() * 0.02 + 0.015
+      });
+    }
+  }
+
+  let timer = 0;
+  function loop() {
+    ctx.globalCompositeOperation = "destination-out";
+    ctx.fillStyle = "rgba(0, 0, 0, 0.2)";
+    ctx.fillRect(0, 0, width, height);
+    ctx.globalCompositeOperation = "lighter";
+
+    timer++;
+    if (timer % 25 === 0) {
+      const startX = Math.random() * (width - 200) + 100;
+      const targetX = Math.random() * (width - 200) + 100;
+      const targetY = Math.random() * (height / 2) + 80;
+      fireworks.push(new Firework(startX, height, targetX, targetY));
+    }
+
+    let i = fireworks.length;
+    while (i--) {
+      fireworks[i].draw();
+      fireworks[i].update(i);
+    }
+
+    let pCount = particles.length;
+    while (pCount--) {
+      const p = particles[pCount];
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vy += 0.08;
+      p.alpha -= p.decay;
+
+      if (p.alpha <= 0) {
+        particles.splice(pCount, 1);
+        continue;
+      }
+
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fillStyle = p.color;
+      ctx.globalAlpha = Math.max(0, p.alpha);
+      ctx.fill();
+    }
+
+    animationId = requestAnimationFrame(loop);
+  }
+
+  fireworks.push(new Firework(width / 3, height, width / 3, height / 3));
+  fireworks.push(new Firework((width / 3) * 2, height, (width / 3) * 2, height / 3.5));
+  loop();
+}
+
+function stopFireworks() {
+  const canvas = document.getElementById("fireworks-canvas");
+  canvas.classList.add("hidden");
+  if (animationId) {
+    cancelAnimationFrame(animationId);
+  }
+}
+
+function openEditClosedBillModal(id){
+  if(!isAdmin){
+    toast("Kapanan adisyonları sadece yönetici düzenleyebilir");
+    return;
+  }
+  const a = db.adisyonlar.find(x => x.id === id);
+  if(!a) return;
+
+  document.getElementById("ecb-id").value = a.id;
+  document.getElementById("ecb-info").innerHTML = `<b>${esc(a.name)}</b> — ${new Date(a.closedAt).toLocaleString("tr-TR")}`;
+  document.getElementById("ecb-odeme").value = a.odeme || "nakit";
+  document.getElementById("ecb-indirim").value = a.indirim || 0;
+
+  const itemsContainer = document.getElementById("ecb-items");
+  itemsContainer.innerHTML = (a.items || []).map((it, idx) => `
+    <div class="item-row">
+      <div style="flex:1">
+        <b>${esc(it.name)}</b>
+        <div class="mut small">${it.type === "urun" ? it.qty + " adet" : "Hizmet"}</div>
+      </div>
+      <div style="flex:0 0 100px">
+        <input 
+          type="number" 
+          min="0" 
+          value="${Number(it.price||0)}" 
+          class="ecb-item-price-input" 
+          data-idx="${idx}"
+          style="margin-bottom:0;padding:6px 8px;font-size:0.9rem;text-align:right"
+          oninput="calculateEcbTotal()">
+      </div>
+    </div>
+  `).join("");
+
+  document.getElementById("edit-closed-bill-modal").classList.remove("hidden");
+  calculateEcbTotal();
+}
+
+function closeEditClosedBillModal(){
+  document.getElementById("edit-closed-bill-modal").classList.add("hidden");
+}
+
+function calculateEcbTotal(){
+  const id = document.getElementById("ecb-id").value;
+  const a = db.adisyonlar.find(x => x.id === id);
+  if(!a) return;
+
+  let subtotal = 0;
+  const priceInputs = document.querySelectorAll(".ecb-item-price-input");
+  priceInputs.forEach(inp => {
+    const idx = Number(inp.dataset.idx);
+    const item = a.items[idx];
+    if(item){
+      const p = Math.max(0, Number(inp.value) || 0);
+      subtotal += p * Number(item.qty || 1);
+    }
+  });
+
+  const indirim = Math.max(0, Number(document.getElementById("ecb-indirim").value) || 0);
+  const total = Math.max(0, subtotal - indirim);
+  document.getElementById("ecb-total-display").textContent = fmtTL(total);
+}
+
+function saveClosedBillChanges(){
+  const id = document.getElementById("ecb-id").value;
+  const a = db.adisyonlar.find(x => x.id === id);
+  if(!a) return;
+
+  const odeme = document.getElementById("ecb-odeme").value;
+  const indirim = Math.max(0, Number(document.getElementById("ecb-indirim").value) || 0);
+
+  let subtotal = 0;
+  const priceInputs = document.querySelectorAll(".ecb-item-price-input");
+  priceInputs.forEach(inp => {
+    const idx = Number(inp.dataset.idx);
+    const item = a.items[idx];
+    if(item){
+      const p = Math.max(0, Number(inp.value) || 0);
+      item.price = p;
+      subtotal += p * Number(item.qty || 1);
+    }
+  });
+
+  a.odeme = odeme;
+  a.indirim = Math.min(indirim, subtotal);
+  a.total = Math.max(0, subtotal - a.indirim);
+
+  save();
+  closeEditClosedBillModal();
+  renderAdisyonPage();
+  toast("Adisyon güncellendi");
+}
+
+function cancelClosedBillFromModal(){
+  const id = document.getElementById("ecb-id").value;
+  if(!confirm("Bu adisyon tamamen iptal edilsin mi? (Stoklar iade edilecektir)")) return;
+
+  const a = db.adisyonlar.find(x => x.id === id);
+  if(a && Array.isArray(a.items)){
+    a.items.forEach(item => {
+      if(item.type === "urun" && item.urunId){
+        const u = db.urunler.find(x => x.id === item.urunId);
+        if(u){
+          u.stok = Number(u.stok||0) + Number(item.qty||1);
+        }
+      }
+    });
+  }
+
+  db.adisyonlar = db.adisyonlar.filter(x => x.id !== id);
+  save();
+  closeEditClosedBillModal();
+  renderAdisyonPage();
+  toast("Adisyon iptal edildi ve stoklar geri yüklendi");
+}
+
+function printLabel(){
+  const b = db.activeBill;
+  if(!b){ toast("Açık adisyon yok"); return; }
+  document.getElementById("lb-name").textContent = b.name;
+  document.getElementById("lb-meta").textContent = `İşlem Tarihi: ${new Date(b.created).toLocaleDateString("tr-TR")}`;
+  if(b.photo){
+    document.getElementById("lb-photo").src = b.photo;
+    document.getElementById("lb-photo").classList.remove("hidden");
+  } else {
+    document.getElementById("lb-photo").classList.add("hidden");
+  }
+  document.getElementById("label-modal").classList.remove("hidden");
+}
+
+function closeLabelModal(){
+  document.getElementById("label-modal").classList.add("hidden");
+}
+
+function downloadLabel(){
+  toast("Etiketi ekran görüntüsü alarak Niimbot uygulamasına aktarabilirsiniz.");
+  closeLabelModal();
+}
+</script>
+</body>
+</html>
