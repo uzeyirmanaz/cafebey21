@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<link rel="stylesheet" href="style.css?v=1">
+<script src="config.js?v=1"></script>
+<script>(function(){
+  var C = window.APP_CONFIG = window.APP_CONFIG || {}, B = C.brand = C.brand || {};
+  B.name = String(B.name || 'İŞLETMEM'); var w = B.name.trim().split(/\s+/);
+  if(!B.line1) B.line1 = w[0]; if(B.line2 == null) B.line2 = w.slice(1).join(' ');
+  if(!B.initials) B.initials = (w.length > 1 ? w[0].charAt(0) + w[1].charAt(0) : B.name.slice(0, 2)).toLocaleUpperCase('tr-TR');
+  C.firebase = C.firebase || {}; C.adminEmail = C.adminEmail || '';
+  // Aynı alan adında (örn. kullanici.github.io) birden çok işletme çalışabilir: yerel kayıtlar işletmeye özel önekle ayrılır
+  var ns = (String(C.firebase.projectId || '') + (window.__cfgId ? '-' + window.__cfgId : '')).replace(/[^A-Za-z0-9_-]/g, '') || ('p' + location.pathname.replace(/[^A-Za-z0-9]/g, ''));
+  window.__nsk = function(k){ return /^pos[A-Z]/.test(k) ? ns + ':' + k : k; };
+  try{ var P = Storage.prototype, g0 = P.getItem, s0 = P.setItem, r0 = P.removeItem;
+    P.getItem = function(k){ return g0.call(this, window.__nsk(k)); }; P.setItem = function(k, v){ return s0.call(this, window.__nsk(k), v); }; P.removeItem = function(k){ return r0.call(this, window.__nsk(k)); }; }catch(e){}
+  document.title = B.name;
+  document.addEventListener('DOMContentLoaded', function(){
+    var set = function(sel, v){ var e = document.querySelector(sel); if(e) e.setAttribute('content', v); };
+    set('meta[name="description"]', B.name + ' dijital menü ve sipariş sistemi'); set('meta[property="og:title"]', B.name + ' — Dijital Menü'); set('meta[name="apple-mobile-web-app-title"]', B.name);
+  });
+  var u = String(C.firebase.databaseURL || '').replace(/\/$/, '');
+  if(u){ var l = document.createElement('link'); l.rel = 'preconnect'; l.href = u; l.crossOrigin = 'anonymous'; document.head.appendChild(l); }
+  window.__pubP = (u && /^https?:/.test(location.protocol)) ? fetch(u + '/public.json', { cache: 'no-store' }).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; }) : Promise.resolve(null);
+})();</script>
+<script>try{if(sessionStorage.getItem('posUser')){document.documentElement.classList.add('restoring');setTimeout(function(){document.documentElement.classList.remove('restoring')},10000)}}catch(e){}</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="build" content="20261024-6">
+<meta name="description" content="Dijital menü ve sipariş sistemi">
+<meta property="og:title" content="Dijital Menü"><meta property="og:description" content="Menüyü inceleyin, masanızdan sipariş verin."><meta property="og:type" content="website">
+<meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Menü"><meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" id="appleIcon" href="data:,">
+<meta name="theme-color" content="#0F1A2C">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>İŞLETMEM</title>
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Cormorant+Garamond:wght@600;700&family=Dancing+Script:wght@600;700&family=Lobster&family=Montserrat:wght@500;700&family=Oswald:wght@500;600&family=Pacifico&family=Playfair+Display:wght@600;700&family=Poppins:wght@500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
+<link rel="icon" id="favi" href="data:,">
+</head>
+<body data-theme="light">
+  <div id="customerView">
+    <div class="c-head"><div id="cLogo" class="c-logo"></div><div class="c-social" id="cSocial"></div></div>
+    <div class="c-langs" id="cLang" style="display:none"></div>
+    <div class="c-top"><div class="c-masa"><span>🪑 Masa</span><select id="cMasa"></select></div>
+    <input id="cSearch" class="c-search" placeholder="🔍 Menüde ara…" autocomplete="off">
+    <button type="button" class="c-aibtn" id="cAiBtn" style="display:none">💬 Menü Asistanı · ne yesem?</button>
+    <div class="c-tabs" id="cTabs"></div><div class="c-tabs c-subs" id="cSubs" style="display:none"></div></div>
+    <div id="cItems"></div>
+    <div class="c-bar"><div class="c-bar-in">
+      <div class="c-status" id="cStatus" style="display:none;"></div>
+      <div id="cCartList" style="display:none"></div><input class="c-note" id="cNote" placeholder="Sipariş notu (isteğe bağlı)" style="display:none"><button type="button" class="c-noteai" id="cNoteAi" style="display:none">✨ Notu mutfak için düzenle</button>
+      <button class="c-send" id="cSend" disabled>Sepet boş</button>
+    </div></div>
+  </div>
+  <div class="modal-bg" id="loginModal"><div class="modal-box">
+    <h3 style="margin:0;">Personel Girişi</h3>
+    <input id="loginName" type="text" placeholder="Ad Soyad (kayıttaki gibi)" autocomplete="username" autocapitalize="words">
+    <input id="loginPass" type="password" placeholder="Şifre" autocomplete="current-password">
+    <div id="loginErr" style="color:var(--red);font-size:.85rem;min-height:18px;"></div>
+    <div style="font-size:.76rem;color:var(--ink-faint);">Yönetici şifresini unuttuysa: isim "Yönetici", şifre boş, Giriş → bağlı Google hesabı.</div>
+    <div style="display:flex;gap:8px;"><button class="btn-save" id="loginOk" style="margin:0;">Giriş</button><button class="btn-save" id="loginCancel" style="margin:0;background:var(--ink-faint);">Vazgeç</button></div>
+  </div></div>
+  <div class="modal-bg" id="coModal"><div class="modal-box">
+    <div style="display:flex;align-items:center;margin-bottom:10px;"><h3 style="margin:0;flex:1;">🔔 Müşteri Siparişleri</h3><span id="coClose" style="cursor:pointer;font-size:20px;">✕</span></div>
+    <div id="coList"></div>
+  </div></div>
+
+
+  <div id="printArea"></div>
+  <div class="toast" id="toast"></div>
+  <div id="saveBanner" role="status" aria-live="polite"><div class="sb-ic">✓</div><div><div class="sb-t" id="sbT"></div><div class="sb-s" id="sbS"></div></div></div>
+
+  <!-- Personel arayüzü ham HTML'de render edilmez: <template> içinde durur, yalnızca personel girişinden sonra sayfaya takılır -->
+  <template id="staffTpl">
+  <div class="top-actions">
+    <div class="staff-bar">
+      <span class="mode" id="rtMode"></span>
+      <button class="ta-btn" id="btnCO" title="Siparişler" aria-label="Siparişler">🔔<span class="badge-n" id="coBadge">0</span></button>
+      <button class="ta-btn" id="btnKitchen" title="Mutfak" aria-label="Mutfak">👨‍🍳<span class="badge-n" id="kBadge">0</span></button>
+      <button class="ta-btn" id="btnAsk" title="Soru Sor (Yapay Zekâ)" aria-label="Soru Sor">❓</button>
+      <button class="ta-btn" id="btnLogout" title="Çıkış" aria-label="Çıkış">⎋</button>
+    </div>
+    <div class="eye-toggle" id="eyeToggle">
+      <span class="icon" id="eyeIcon">☀️</span>
+      <span class="track"><span class="knob"></span></span>
+      <span id="eyeLabel">Göz dinlendirme</span>
+    </div>
+  </div>
+
+  <div class="app">
+    <!-- SIDEBAR -->
+    <div class="sidebar" id="sidebar">
+      <div class="sb-top">
+        <div class="brand">
+          <div class="sb-logo" id="sbLogo"></div>
+          <div class="brand-sub" hidden><input id="restName" class="name-inline" value="" spellcheck="false" readonly tabindex="-1" aria-readonly="true"></div>
+        </div>
+      </div>
+
+      <nav class="sb-nav">
+        <div class="nav-sec nav-acc open">
+          <div class="nav-label" role="button" tabindex="0"><span>Günlük işler</span><span class="chev">▾</span></div>
+          <div class="nav-accbody">
+          <div class="nav-item active" data-screen="home"><span class="ic">🏠</span>Ana Sayfa</div>
+          <div class="nav-item" data-screen="siparis-masa"><span class="ic">🛒</span>Masalar / Sipariş</div>
+          <div class="nav-item" data-screen="paketler"><span class="ic">📦</span>Paket / Gel-Al</div>
+          <div class="nav-item" data-screen="mutfak"><span class="ic">👨‍🍳</span>Mutfak Ekranı<span class="nb" id="sbK">0</span></div>
+          <div class="nav-item" id="navCO" role="button"><span class="ic">🔔</span>Müşteri Siparişleri<span class="nb" id="sbCO">0</span></div>
+          </div>
+        </div>
+
+        <div class="nav-sec nav-acc">
+          <div class="nav-label" role="button" tabindex="0"><span>Menü ve müşteri</span><span class="chev">▾</span></div>
+          <div class="nav-accbody">
+          <div class="nav-item" data-screen="urunler"><span class="ic">🍴</span>Menü / Ürünler</div>
+          <div class="nav-item" data-screen="digitalmenu"><span class="ic">📶</span>Dijital Menü / QR</div>
+          <div class="nav-item" data-screen="musteriler"><span class="ic">👤</span>Müşteriler / Açık Hesap</div>
+          </div>
+        </div>
+
+        <div class="nav-sec nav-acc">
+          <div class="nav-label" role="button" tabindex="0"><span>Kasa ve raporlar</span><span class="chev">▾</span></div>
+          <div class="nav-accbody">
+          <div class="nav-item" data-screen="stok"><span class="ic">📦</span>Stok<span class="nb" id="sbStk">0</span></div>
+          <div class="nav-item" data-screen="ciro"><span class="ic">📈</span>Ciro Takibi</div>
+          <div class="nav-item" data-screen="rapor-gunsonu"><span class="ic">💲</span>Gün Sonu</div>
+          <div class="nav-item" data-screen="gider"><span class="ic">📉</span>Gider / Masraf</div>
+          <div class="nav-item" data-screen="zayi"><span class="ic">🗑️</span>Zayi Kayıtları</div>
+          <div class="nav-fold" data-fold="rapor">
+            <div class="nav-item" role="button"><span class="ic">📊</span>Diğer Raporlar<span class="chev">▾</span></div>
+            <div class="nav-sub">
+              <div class="nav-item" data-screen="rapor-urun"><span class="ic">📈</span>Ürün Satışları</div>
+              <div class="nav-item" data-screen="rapor-vardiya"><span class="ic">📄</span>Vardiya Satışları</div>
+              <div class="nav-item" data-screen="rapor-istatistik"><span class="ic">◐</span>İstatistikler</div>
+              <div class="nav-item" data-screen="rapor-fire"><span class="ic">🔥</span>Fire Raporu</div>
+            </div>
+          </div>
+          </div>
+        </div>
+
+        <div class="nav-sec nav-acc">
+          <div class="nav-label" role="button" tabindex="0"><span>Yönetim</span><span class="chev">▾</span></div>
+          <div class="nav-accbody">
+          <div class="nav-item" data-screen="tables"><span class="ic">▦</span>Masa / Bölgeler</div>
+          <div class="nav-item" data-screen="users"><span class="ic">👥</span>Kullanıcılar</div>
+          <div class="nav-item" data-screen="perms"><span class="ic">🛡️</span>Yetkiler</div>
+          <div class="nav-item" data-screen="ai"><span class="ic">✨</span>Yapay Zekâ</div>
+          <div class="nav-item" data-screen="settings"><span class="ic">⚙️</span>Ayarlar</div>
+          <div class="nav-fold" data-fold="tanim">
+            <div class="nav-item" role="button"><span class="ic">📋</span>Menü Tanımları<span class="chev">▾</span></div>
+            <div class="nav-sub">
+              <div class="nav-item" data-screen="birimler"><span class="ic">📖</span>Birimler</div>
+              <div class="nav-item" data-screen="ozellikler"><span class="ic">☰</span>Sipariş Notları</div>
+              <div class="nav-item" data-screen="kdv"><span class="ic">%</span>KDV Oranları</div>
+              <div class="nav-item" data-screen="indirimler"><span class="ic">🏷️</span>İndirimler</div>
+              <div class="nav-item" data-screen="mutfakgruplari"><span class="ic">📺</span>Mutfak Grupları</div>
+              <div class="nav-item" data-screen="odenmezler"><span class="ic">🚫</span>İkram Gerekçeleri</div>
+            </div>
+          </div>
+          </div>
+        </div>
+      </nav>
+
+      <div class="sb-foot">
+        <span class="av" id="sbAv">?</span>
+        <span class="who"><b id="sbUserName">—</b><small id="sbUserRole">—</small></span>
+        <button id="sbLogout" type="button" title="Çıkış" aria-label="Çıkış">Çıkış</button>
+      </div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main">
+      <div class="topbar">
+        <div class="tb-ic" id="btnMenu" title="Menü">☰</div>
+        <div class="title" id="topTitle">Ana Sayfa</div>
+        <div class="spacer"></div>
+                        <div class="tb-ic" id="btnRefresh" title="Yenile">↻</div>
+      </div>
+
+      <div class="content">
+
+        <!-- HOME -->
+        <div class="screen show" id="screen-home">
+          <div class="stat-grid">
+            <div class="stat-card">
+              <div class="swatch sw-1">◈</div>
+              <div class="info">
+                <div class="label">Bugünkü toplam satış tutarı</div>
+                <div class="value" id="homeSalesValue">₺0,00</div>
+                <div class="foot" data-screen="rapor-gunsonu">Gün sonu raporu</div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="swatch sw-2">👥</div>
+              <div class="info">
+                <div class="label">Bugün ağırlanan misafir sayısı</div>
+                <div class="value" id="homeGuestValue">0</div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="swatch sw-3">▂▅█</div>
+              <div class="info">
+                <div class="label">Bugün açık sipariş toplamı</div>
+                <div class="value" id="homeOpenOrderValue">₺0,00</div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="swatch sw-4">⇅</div>
+              <div class="info">
+                <div class="label">Bugünkü toplam gider tutarı</div>
+                <div class="value" id="homeExpenseValue">₺0,00</div>
+                <div class="foot" data-screen="gider">Masraflar</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-title">Günlük Satış Miktarları</div>
+            <div id="dailySalesChart"></div>
+          </div>
+
+          <div class="chart-row">
+            <div class="chart-card" style="margin-top:0;">
+              <div class="chart-title">Bugün Yapılan Ödemeler</div>
+              <div id="paymentsChart"></div>
+            </div>
+
+            <div class="chart-card" style="margin-top:0;">
+              <div class="chart-title">Masa Yoğunluğu (%)</div>
+              <div id="occupancyChart"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SETTINGS -->
+        <div class="screen" id="screen-settings">
+          <div class="settings-card">
+            <div class="settings-head">
+              <div class="icn">⚙️</div>
+              <div>
+                <h2>Restaurant Tanımlamaları</h2>
+                <p>Restaurantınız ile ilgili tanımlamaları bu alandan yapabilirsiniz.</p>
+              </div>
+              <button class="btn-update" id="btnGuncelle">💾 Güncelle</button>
+            </div>
+            <div class="tabs">
+              <div class="tab active" data-tab="genel">Genel Ayarlar</div>
+              <div class="tab" data-tab="odeme">Ödeme Tipleri</div>
+              <div class="tab" data-tab="sistem">Yedek &amp; Sistem</div>
+              <div class="tab" data-tab="marka" id="tabMarka" style="display:none">🎨 Marka &amp; Logo</div>
+            </div>
+
+            <div id="tab-genel">
+              <div class="field"><label>Restaurant Adı</label><div class="val" id="setRestName" contenteditable="true"></div></div>
+              <div class="field"><label>Gün Başlangıç (gün sonu raporu bu saatte başlar)</label><div class="val" id="setDayStart" contenteditable="true">05:00</div></div>
+              <div class="field"><label>Vardiya değişim saati (sabah / akşam ayrımı)</label><div class="val" id="setShift" contenteditable="true">15:00</div></div>
+              <div class="field"><label>İlk adisyon numarası</label><div class="val" id="setFirstOrderNo" contenteditable="true">101</div></div>
+              <div class="field" id="wifiBlock"><label>Wi-Fi — müşteri menüsünde göster</label><div class="toggle-row" style="border:0;padding:6px 0"><div class="mini-toggle on" id="wifiOnTgl" role="switch" aria-checked="true" tabindex="0" style="cursor:pointer"><span class="k"></span></div><div class="name">Menüde Wi-Fi butonu görünsün</div></div><label style="margin-top:8px">Ağ adı</label><div class="val" id="setWifiName" contenteditable="true"></div><label style="margin-top:8px">Şifre (menüde görünür ve müşteri tek dokunuşla kopyalar)</label><div class="val" id="setWifiPass" contenteditable="true"></div><button class="btn-update" id="btnWifiSave" type="button" style="margin-top:10px">📶 Wi-Fi'yi güncelle</button></div>
+              <div class="field" id="socialBlock"><label>Sosyal medya — hesabınız varsa açın, kullanıcı adını yazın; menüde simge olarak görünür, dokununca hesabınıza gider</label><div id="socRows"><div class="toggle-row"><div class="mini-toggle off" data-soc-t="instagram" role="switch" aria-checked="false" tabindex="0" style="cursor:pointer"><span class="k"></span></div><div class="name" style="flex:0 0 130px">Instagram</div><input class="val" data-soc-v="instagram" placeholder="kullanıcı adı" autocomplete="off" style="flex:1;min-width:0;border:0;background:transparent;font:inherit;color:inherit"></div><div class="toggle-row"><div class="mini-toggle off" data-soc-t="tiktok" role="switch" aria-checked="false" tabindex="0" style="cursor:pointer"><span class="k"></span></div><div class="name" style="flex:0 0 130px">TikTok</div><input class="val" data-soc-v="tiktok" placeholder="kullanıcı adı" autocomplete="off" style="flex:1;min-width:0;border:0;background:transparent;font:inherit;color:inherit"></div><div class="toggle-row"><div class="mini-toggle off" data-soc-t="facebook" role="switch" aria-checked="false" tabindex="0" style="cursor:pointer"><span class="k"></span></div><div class="name" style="flex:0 0 130px">Facebook</div><input class="val" data-soc-v="facebook" placeholder="sayfa adı" autocomplete="off" style="flex:1;min-width:0;border:0;background:transparent;font:inherit;color:inherit"></div><div class="toggle-row"><div class="mini-toggle off" data-soc-t="x" role="switch" aria-checked="false" tabindex="0" style="cursor:pointer"><span class="k"></span></div><div class="name" style="flex:0 0 130px">X (Twitter)</div><input class="val" data-soc-v="x" placeholder="kullanıcı adı" autocomplete="off" style="flex:1;min-width:0;border:0;background:transparent;font:inherit;color:inherit"></div><div class="toggle-row"><div class="mini-toggle off" data-soc-t="youtube" role="switch" aria-checked="false" tabindex="0" style="cursor:pointer"><span class="k"></span></div><div class="name" style="flex:0 0 130px">YouTube</div><input class="val" data-soc-v="youtube" placeholder="kanal adı" autocomplete="off" style="flex:1;min-width:0;border:0;background:transparent;font:inherit;color:inherit"></div><div class="toggle-row"><div class="mini-toggle off" data-soc-t="whatsapp" role="switch" aria-checked="false" tabindex="0" style="cursor:pointer"><span class="k"></span></div><div class="name" style="flex:0 0 130px">WhatsApp</div><input class="val" data-soc-v="whatsapp" placeholder="telefon (905xxxxxxxxx)" autocomplete="off" style="flex:1;min-width:0;border:0;background:transparent;font:inherit;color:inherit"></div><div class="toggle-row"><div class="mini-toggle off" data-soc-t="maps" role="switch" aria-checked="false" tabindex="0" style="cursor:pointer"><span class="k"></span></div><div class="name" style="flex:0 0 130px">Konum (Harita)</div><input class="val" data-soc-v="maps" placeholder="Google Haritalar bağlantısı veya adres" autocomplete="off" style="flex:1;min-width:0;border:0;background:transparent;font:inherit;color:inherit"></div><div class="toggle-row"><div class="mini-toggle off" data-soc-t="web" role="switch" aria-checked="false" tabindex="0" style="cursor:pointer"><span class="k"></span></div><div class="name" style="flex:0 0 130px">Web sitesi</div><input class="val" data-soc-v="web" placeholder="www.siteniz.com" autocomplete="off" style="flex:1;min-width:0;border:0;background:transparent;font:inherit;color:inherit"></div></div><button class="btn-update" id="btnSocSave" type="button" style="margin-top:10px">🔗 Sosyal medyayı güncelle</button></div>
+              <div class="field" id="ownerPwField"><label>Şifremi değiştir (Admin veya Yönetici; yeni şifre en az 6 karakter. eski şifreyi unuttuysan Google ile girdikten hemen sonra eski şifreyi boş bırak; Admin ilk kez şifre belirliyorsa da boş bırakır)</label><input type="password" class="val" id="ownerOldPw" autocomplete="current-password" placeholder="Eski şifre" style="width:100%;border:0;background:transparent;font:inherit;color:inherit"><input type="password" class="val" id="ownerNewPw" autocomplete="new-password" placeholder="Yeni şifre" style="width:100%;border:0;background:transparent;font:inherit;color:inherit;margin-top:6px"><button class="btn-update" id="btnOwnerPw" style="margin-top:8px;">🔑 Şifremi değiştir</button></div>
+              <div class="field" id="ownerGoogleField"><label>Kurtarma Google hesabı — şifreni unutursan girişte isim "Yönetici" yaz, şifreyi boş bırakıp Giriş'e bas, bu hesabı seç</label><div class="val" id="ownerGoogleInfo" style="padding:6px 0"></div><button class="btn-update" id="btnOwnerGoogle" style="margin-top:8px;">🔗 Google hesabını bağla / değiştir</button></div>
+              <div class="field" id="ownerAccField"><label>Yönetici hesabı — şifre belirle / unutulduysa sıfırla (en az 6 karakter; Yönetici girişi: isim "Yönetici" + bu şifre)</label><input type="password" class="val" id="setOwnerPw" autocomplete="new-password" placeholder="Yönetici için yeni şifre" style="width:100%;border:0;background:transparent;font:inherit;color:inherit"><button class="btn-update" id="btnOwnerAcc" style="margin-top:8px;">🔑 Yönetici hesabını kaydet</button></div>
+              <div class="field" id="supPinField"><label>Admin PIN (yalnızca Admin değiştirir; en az 6 karakter. Giriş: isim "Admin")</label><input type="password" class="val" id="setSupPin" autocomplete="new-password" placeholder="Admin PIN'i belirlemek/değiştirmek için yazın" style="width:100%;border:0;background:transparent;font:inherit;color:inherit"></div>
+              <div class="field"><label>Yönetici PIN (personel girişi, bu cihaz)</label><input type="password" class="val" id="setPin" autocomplete="new-password" placeholder="Değiştirmek için yeni PIN yazın (en az 4 hane)" style="width:100%;border:0;background:transparent;font:inherit;color:inherit"></div>
+            </div>
+            <div id="tab-marka" style="display:none;"><div class="brSec"><h4>🎯 Hazır tasarımlar</h4><p>Birine dokunun, yazı tipi ve renkler otomatik ayarlansın. Sonra isteğinize göre değiştirin.</p><div id="brPresets" class="brRow" style="margin-top:0"></div></div><div class="brSec"><h4>Logo türü</h4><select id="brMode" class="brIn"><option value="text">Yazı logosu — isim yaz, yazı tipi ve renk seç</option><option value="img">Görsel logosu — kendi logo resmini yükle</option></select></div><div id="brTextBox"><div class="brSec"><h4>Yazı</h4><input id="brL1" class="brIn" placeholder="Büyük yazı (örn. KAFE ADI)" autocomplete="off"><input id="brL2" class="brIn" placeholder="Küçük yazı (örn. COFFEE) — isteğe bağlı" autocomplete="off"><select id="brFont" class="brIn"></select><select id="brW" class="brIn"><option value="500">Yazı kalınlığı: Normal</option><option value="700">Yazı kalınlığı: Kalın</option></select><select id="brCase" class="brIn"><option value="auto">Harf: otomatik</option><option value="upper">HEPSİ BÜYÜK</option><option value="lower">hepsi küçük</option><option value="title">Baş Harfler Büyük</option><option value="none">Yazdığım gibi</option></select><select id="brCStyle" class="brIn"><option value="auto">Renk: yumuşak geçiş (tek renkten)</option><option value="solid">Renk: düz tek renk</option><option value="two">Renk: iki renk geçişi</option></select><div class="brRow"><span>Yazı rengi</span><input type="color" id="brColor" value="#d9a441" style="width:48px;height:34px;border:0;padding:0;background:none"></div><div id="brColor2Row"><div class="brRow"><span>İkinci renk</span><input type="color" id="brColor2" value="#8a5a12" style="width:48px;height:34px;border:0;padding:0;background:none"></div></div><div class="brRow"><div class="mini-toggle on" id="brSpread" role="switch" aria-checked="true" tabindex="0" style="cursor:pointer"><span class="k"></span></div><div class="name">Harfleri genişçe yay (kısa isimlerde şık durur)</div></div><div class="brRow"><div class="mini-toggle on" id="brRule" role="switch" aria-checked="true" tabindex="0" style="cursor:pointer"><span class="k"></span></div><div class="name">Büyük ve küçük yazı arasında ince çizgi</div></div><div id="brAlignRow"><select id="brAlign" class="brIn"><option value="start">Hizalama: sola</option><option value="middle">Hizalama: ortaya</option></select></div></div><div class="brSec"><h4>Simge</h4><select id="brEmblem" class="brIn"><option value="auto">Varsayılan simge</option><option value="cup">Fincan</option><option value="letter">İlk harf rozeti</option><option value="img">Kendi simge görselim</option><option value="none">Simge yok (sadece yazı)</option></select><div id="brEmbImgRow" class="brRow"><input type="file" id="brEmbFile" accept="image/*"><span id="brEmbInfo" style="font-size:.8rem;color:var(--ink-dim)"></span></div></div></div><div id="brImgBox" style="display:none"><div class="brSec"><h4>Görsel logo</h4><p>Şeffaf arka planlı PNG en iyi sonucu verir. Büyük görseller otomatik küçültülür.</p><input type="file" id="brFile" accept="image/*"><div id="brImgInfo" style="font-size:.82rem;color:var(--ink-dim);margin-top:6px"></div><div class="brRow"><span>Boyut</span><input type="range" id="brScale" min="40" max="100" value="100" style="flex:1"></div><select id="brShape" class="brIn"><option value="none">Çerçeve: yok</option><option value="round">Çerçeve: yuvarlatılmış köşe</option><option value="circle">Çerçeve: daire (kırpar)</option></select><select id="brBg" class="brIn"><option value="none">Logo zemini: şeffaf</option><option value="white">Logo zemini: beyaz</option><option value="dark">Logo zemini: koyu lacivert</option><option value="custom">Logo zemini: özel renk</option></select><div id="brBgColorRow"><div class="brRow"><span>Zemin rengi</span><input type="color" id="brBgColor" value="#ffffff" style="width:48px;height:34px;border:0;padding:0;background:none"></div></div></div></div><div class="brSec"><h4>Menü rengi (müşteri menüsü)</h4><p>Düğmeler ve vurgular bu renkle boyanır. Otomatik açıkken logonuzun rengi kullanılır, uğraşmanız gerekmez.</p><div class="brRow"><div class="mini-toggle on" id="brAccAuto" role="switch" aria-checked="true" tabindex="0" style="cursor:pointer"><span class="k"></span></div><div class="name">Menü rengini logodan otomatik al</div></div><div id="brAccRow"><div class="brRow"><span>Menü rengi (elle)</span><input type="color" id="brAccent" value="#cf2e2e" style="width:48px;height:34px;border:0;padding:0;background:none"></div></div><div id="brPal" class="brRow"></div><div id="brAccSw" style="font-size:.85rem;margin-top:8px"></div></div><div class="brSec"><h4>Uygulama ikonu</h4><p>Telefon ana ekranına eklenince ve tarayıcı sekmesinde görünen küçük simgenin zemin rengi.</p><div class="brRow"><span>Zemin rengi</span><input type="color" id="brIconBg" value="#0F1A2C" style="width:48px;height:34px;border:0;padding:0;background:none"></div></div><div class="brSec"><h4>👁 Önizleme</h4><div class="brPre" id="brPrevL" style="background:#fff"></div><div class="brPre" id="brPrevD" style="background:#0F1A2C"></div><div class="brRow"><div id="brPrevI"></div><button type="button" id="brPrevBtn" style="border:0;border-radius:999px;padding:10px 18px;font:600 .9rem inherit;cursor:default">Sepete ekle</button></div></div><div class="brRow"><button class="btn-update" id="btnBrandSave" type="button">🎨 Logo ve markayı güncelle</button><button class="btn-mini" id="btnBrandReset" type="button">Varsayılana dön</button><button class="btn-mini" id="btnBrandExp" type="button">⬇ Ayarları indir</button><button class="btn-mini" id="btnBrandImp" type="button">⬆ Ayarları yükle</button><input type="file" id="brImpFile" accept=".json" style="display:none"></div></div>
+
+            <div id="tab-sistem" style="display:none;">
+              <div class="field"><label>Durum</label><div class="val" id="sysStatus"></div></div>
+              <div class="link-row" style="margin-top:14px;"><button class="btn-mini" id="btnBackup">⬇ Yedeği İndir</button><button class="btn-mini" id="btnRestore">⬆ Yedekten Yükle</button><button class="btn-mini" id="btnWipe" style="background:var(--red);">Tüm Verileri Sıfırla</button></div>
+              <input type="file" id="restoreFile" accept=".json" style="display:none;">
+            </div>
+
+            <div id="tab-odeme" style="display:none;">
+              <div class="toggle-row"><div class="mini-toggle on"><span class="k"></span></div><div class="name pay-name" contenteditable="true">Nakit</div><span class="pay-edit-hint">✎</span></div>
+              <div class="toggle-row"><div class="mini-toggle on"><span class="k"></span></div><div class="name pay-name" contenteditable="true">Kredi Kartı</div><span class="pay-edit-hint">✎</span></div>
+              <div class="toggle-row"><div class="mini-toggle off"><span class="k"></span></div><div class="name pay-name" contenteditable="true">Multinet</div><span class="pay-edit-hint">✎</span></div>
+              <div class="toggle-row"><div class="mini-toggle off"><span class="k"></span></div><div class="name pay-name" contenteditable="true">Smart Ticket</div><span class="pay-edit-hint">✎</span></div>
+              <div class="toggle-row"><div class="mini-toggle off"><span class="k"></span></div><div class="name pay-name" contenteditable="true">SetCard</div><span class="pay-edit-hint">✎</span></div>
+              <div class="link-btn" id="btnOdemeTipiEkle" style="margin-top:14px;">＋ Yeni Ödeme Tipi</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- USERS -->
+        <div class="screen" id="screen-users">
+          <div class="panel-card">
+            <div class="panel-head"><div class="pi">👥</div><div><h2>Kullanıcılar</h2><p>Kayıtlı kullanıcılar</p></div></div>
+            <div class="plist" id="usersList">
+              
+            </div>
+          </div>
+          <div class="modal-card">
+            <h2>Kullanıcı Ekle</h2>
+            <p class="sub">Yeni eklemek istediğiniz kullanıcının bilgilerini giriniz</p>
+            <div class="field"><label>Görev Seçiniz</label>
+              <select id="selGorev">
+                <option>Garson</option>
+                <option>Kurye</option>
+                <option>Kasa</option>
+                <option>Müdür</option>
+                <option>Çağrı Merkezi</option>
+                <option>Mutfak</option>
+              </select>
+            </div>
+            <div class="field-row">
+              <div class="field"><label>Ad Soyad</label><input id="inpAdSoyad" placeholder=""></div>
+              <div class="field"><label>E-Mail (İsteğe Bağlı)</label><input id="inpEmail" placeholder=""></div>
+            </div>
+            <div class="field-row">
+              <div class="field"><label>Telefon (İsteğe Bağlı)</label><input id="inpTelefon" placeholder="+90"></div>
+              <div class="field"><label>Şifre (en az 6 karakter)</label><input id="inpSifre" type="password" placeholder="••••" autocomplete="new-password"></div>
+            </div>
+            <div class="field"><label>Bölge Seçiniz</label>
+              <select id="selBolge">
+                <option>—</option>
+                <option>Salon</option>
+                <option>Bahçe</option>
+                <option>Teras</option>
+              </select>
+            </div>
+            <div class="toggle-row"><div class="mini-toggle off" id="tglBlocked" data-toggle><span class="k"></span></div><div class="name">Kullanıcı girişi engellensin</div></div>
+            <div style="font-size:.78rem;color:var(--ink-faint);margin-top:4px;">Personel <b>Ad Soyad + şifre</b> ile girer. Şifre en az 6 karakter olmalı (Firebase hesabı bunu şart koşar). Şifre veritabanına yazılmaz.</div>
+            <div id="usrErr" style="color:var(--red);font-size:.85rem;min-height:18px;margin:6px 0;"></div>
+            <button class="btn-add" id="btnEkleKullanici">Ekle</button>
+            <div style="clear:both;"></div>
+          </div>
+        </div>
+
+        <!-- PERMISSIONS -->
+        <div class="screen" id="screen-perms">
+          <div class="perm-table" id="permBox"></div>
+        </div>
+
+        <!-- TABLES / SALON -->
+        <div class="screen" id="screen-tables">
+          <div class="def-card">
+            <div class="def-head">
+              <div class="di">▦</div>
+              <div><h2>Masa / Bölgeler</h2><p>Restoranınıza ait masa ve bölgeleri bu ekrandan düzenleyebilirsiniz.</p></div>
+            </div>
+            <div class="link-row" style="margin-top:18px;">
+              <span class="link-btn" id="btnYeniBolge">＋ Yeni Bölge Ekle</span>
+              <span class="link-btn" id="btnBolgeleriDuzenle">⊞ Bölgeleri Düzenle</span>
+                                        </div>
+            <div class="link-row">
+              <span class="link-btn" id="btnTopluMasa">⊞ Toplu Masa Ekleme</span>
+              <span class="link-btn" id="btnYeniMasa">＋ Yeni Masa</span>
+            </div>
+            <div class="region-tabs" id="regionTabs"></div>
+            <div class="plain-table-grid" id="tableGrid"></div>
+          </div>
+        </div>
+
+        <!-- ORDER TICKET -->
+        <div class="screen ticket-screen" id="screen-order">
+          <div class="tb-dark"><span id="btnOrderBack" style="cursor:pointer;">←</span><span id="orderTableTitle">Masa 3</span><span class="pen-btn" id="btnRenameTable" title="Masaya müşteri adı ver" style="display:none">✎</span><span class="spacer"></span><span id="btnPrintOrder" style="cursor:pointer;" title="Yazdır">🖨️</span></div>
+          <div class="order-card">
+            <div class="order-meta"><span>Adisyon: <input id="adisyonNo" class="editable-inline" style="width:36px;padding:0;" value="0" readonly></span> <span style="margin-left:10px">Kişi: <input id="guestNo" type="number" min="1" class="editable-inline" style="width:44px;padding:0" value="1"></span><b id="orderStatusLabel">Sipariş Durumu: Hazırlanıyor</b></div>
+            <div id="orderLines"></div>
+            <div class="order-empty" id="orderEmptyHint">Sepet boş — menüden ürün ekleyin.</div>
+
+            <div class="order-add-row">
+              <button class="btn-mini" id="btnToggleMenuPicker">🍽️ Menüden Ekle</button>
+              <span class="link-btn muted" id="btnCustomItem">✎ Özel Ürün Ekle</span>
+            </div>
+            <div class="menu-picker" id="menuPicker" style="display:none;">
+              <div class="mp-head"><b id="mpTitle">🍽️ Menü</b><button class="mp-x" id="mpRename" title="Masaya müşteri adı ver" aria-label="Masa adını değiştir">✎</button><button class="mp-x" id="mpAdisyon" title="Adisyon / taşıma / iptal" aria-label="Adisyon">📋</button><button class="mp-x" id="mpClose" title="İşlem yapmadan çık" aria-label="Çık">✕</button></div>
+              <div class="mp-sw"><input id="mpSearch" placeholder="🔍 Ürün ara…" autocomplete="off"></div>
+              <div class="mp-tabs" id="mpTabs"></div><div class="mp-tabs mp-subs" id="mpSubs"></div>
+              <div class="mp-grid" id="mpGrid"></div>
+              <div class="mp-foot"><span id="mpSum">Sepet boş</span><button class="btn-save mp-pay" id="mpPay">💳 Ödeme Al</button><button class="btn-save mp-save" id="mpSave">🛒 Sepeti Gör</button></div>
+              <div id="mpCart">
+                <div class="mp-head"><button class="mp-x wide" id="mpCartBack">← Menü</button><b>🛒 Sepet</b></div>
+                <div class="mc-body">
+                  <h4>Kaydedilecek ürünler</h4><div id="mpCartDraft"></div>
+                  <h4>Adisyonda zaten olanlar</h4><div id="mpCartSaved"></div>
+                </div>
+                <div class="mc-foot"><div class="mc-foot-in">
+                  <div class="mc-tot"><span>Eklenecek tutar</span><span id="mpCartTot">₺0,00</span></div>
+                  <button class="btn-save" id="mpCartOk">✓ Onayla ve Kaydet</button>
+                </div></div>
+              </div>
+            </div>
+
+            <div class="order-total"><span>Toplam Tutar</span><span id="orderTotalValue">₺0,00</span></div>
+            <button class="btn-save" id="btnSaveOrder">KAYDET</button>
+            <div class="mv-hint" id="mvHint" style="display:none"></div>
+            <div class="order-add-row"><button class="btn-mini" id="btnMoveTable">⇄ Ürün / Masa Taşı</button><button class="btn-mini" id="btnCancelOrder">✕ Adisyonu İptal Et</button></div>
+
+            <button class="btn-pay" id="btnTogglePayment">💳 Ödeme Al</button>
+            <div class="payment-panel" id="paymentPanel" style="display:none;">
+              <div class="pp-head"><b>💳 Ödeme — <span id="ppTitle"></span></b><button class="mp-x" id="ppClose" aria-label="Kapat">✕</button></div>
+              <div class="pp-body">
+              <div class="pp-sum-card pp-hero">
+                <div class="pp-rem-lbl">Kalan Tutar</div>
+                <b id="ppSummaryRemaining">₺0,00</b>
+                <div class="pp-prog"><i id="ppProg"></i></div>
+                <div class="pp-mini"><span>Toplam <b id="ppSummaryTotal">₺0,00</b></span><span>Ödenen <b id="ppSummaryPaid">₺0,00</b></span></div>
+              </div>
+              <div class="pp-split-row"><label>İndirim</label><div class="pp-split-controls"><select id="ppDiscSel"></select><span class="link-btn" id="btnDiscApply">Uygula</span></div></div>
+              <div class="pp-card">
+                <div class="pp-lbl">Ödenecek Tutar</div>
+                <div class="pp-amt"><span>₺</span><input id="ppAmountInput" type="number" inputmode="decimal" min="0" step="0.01"></div>
+                <div class="pp-chips">
+                  <button class="pp-chip" id="ppAll">Tamamı</button>
+                  <button class="pp-chip" id="ppHalf">Yarısı</button>
+                  <div class="pp-stepper"><button id="ppSplitMinus" aria-label="Kişi azalt">−</button><input id="ppSplitCount" type="number" min="1" step="1" value="2" aria-label="Kişi sayısı"><button id="ppSplitPlus" aria-label="Kişi artır">+</button><span style="font-size:.8rem;color:var(--ink-dim);padding:0 6px 0 2px">kişi</span></div>
+                  <button class="pp-chip" id="btnSplitCalc">Böl</button>
+                </div>
+              </div>
+              <div class="pp-lbl" style="margin:4px 4px 8px">Ödeme Yöntemi</div>
+              <div class="pp-methods" id="ppMethods"></div>
+              <div class="pp-methods" style="margin-top:12px;"><button class="pp-method" id="btnWaive">🚫 Ödenmez / İkram</button></div>
+              <div class="pp-history" id="ppHistory"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="screen" id="screen-mutfak">
+          <div class="panel-card"><div class="panel-head"><div class="pi">👨‍🍳</div><div><h2>Mutfak Ekranı</h2><p>Garson onayladığı veya girdiği siparişler burada görünür.</p></div></div>
+            <div class="region-tabs" id="kTabs" style="display:flex;gap:18px;margin:6px 0 14px;flex-wrap:wrap;"></div><div class="k-grid" id="kitchenList"></div></div>
+        </div>
+
+        <!-- DIJITAL MENÜ -->
+        <div class="screen" id="screen-digitalmenu">
+          <div class="panel-card">
+            <div class="panel-head">
+              <div class="pi">📶</div>
+              <div><h2>Dijital Menü</h2><p>Müşterileriniz masadaki QR kodu okutarak menüyü telefonundan görüntüler.</p></div>
+            </div>
+            <button class="cust-lock" id="custLockCard" type="button" aria-label="Müşteri ekranı şifresi">
+          <span class="cl-ic" id="clIc">🔓</span>
+          <span class="cl-tx"><b>Müşteri şifresi</b><small id="clState">Kapalı · menü herkese açık</small></span>
+          <span class="cl-act" id="clAct">Ayarla</span>
+        </button>
+            <div class="qr-box" style="flex-direction:column;align-items:center;"><select id="qrMasa"></select><div id="qrOut" style="margin:12px;text-align:center;"></div><p id="qrLink" style="word-break:break-all;font-size:.8rem;"></p></div>
+          </div>
+          <div class="panel-card">
+            <div class="panel-head"><div class="pi">🍴</div><div><h2>Menüde görünen kategoriler</h2><p>Menü / Ürünler ekranındaki değişiklikler anında yayınlanır.</p></div></div>
+            <div class="plist" id="dmCats"></div>
+          </div>
+        </div>
+
+        <!-- MENÜ / ÜRÜNLER -->
+        <div class="screen" id="screen-urunler">
+          <div class="cat-layout">
+            <div class="cat-sidebar">
+              <div class="sb-top">
+                <button class="mbtn pri sb-add" id="btnKategoriEkle" type="button">＋ Ana Kategori Ekle</button>
+                <div class="sb-hint"><b>Ana kategori</b> menünün üstündeki büyük görselli sekmedir. <b>Alt kategoriler</b> onun içinde gruplanır. İşlemler için satırın sağındaki <b>⋮</b> düğmesini kullanın. Menüden bir ana kategoriyi <b>alt kategoriye</b>, bir alt kategoriyi <b>ana kategoriye</b> çevirebilirsiniz.</div>
+              </div>
+              <div class="sb-list" id="catList"></div>
+            </div>
+            <div class="cat-content">
+              <div class="mh" id="menuHead"></div>
+              <div class="mbar">
+                <div class="seg" role="tablist" aria-label="Görünüm">
+                  <button type="button" id="segList" class="on">📋 Ürün Listesi</button>
+                  <button type="button" id="segPrice">💲 Toplu Fiyat Düzenleme</button>
+                </div>
+                <button type="button" class="mbtn" id="btnTopluFoto" title="Dosya adı ürün, alt kategori veya ana kategori adıyla aynı olan fotoğrafları otomatik eşleştirir">📷 Toplu Fotoğraf</button><input type="file" id="topluFotoInp" accept="image/*" multiple style="display:none">
+                <input class="cat-search-input show" id="prodSearchInput" placeholder="🔍 Ürün ara...">
+                <span id="btnUrunAra" style="display:none"></span>
+              </div>
+
+              <div class="pt" id="priceTools">
+                <div class="pt-head"><b>💲 Toplu Fiyat Araçları</b><span>Araçlar fiyatları yalnızca <u>hazırlar</u>. Aşağıdaki <b>“Fiyatları Güncelle”</b> düğmesine basana kadar menüde hiçbir şey değişmez.</span></div>
+                <div class="pt-scope"><label class="pt-all"><input type="checkbox" id="ptAll"> Tümünü seç</label><b id="ptScope"></b><span>Araçlar yalnızca kutusu işaretli ürünlere uygulanır. Tek tek değiştirmek için satırdaki fiyat kutusuna yazın (Enter = sıradaki ürün).</span></div>
+                <div class="pt-grid">
+                  <div class="pt-card">
+                    <h4><i>1</i> Tek fiyat yap</h4>
+                    <p>Seçili ürünlerin hepsi aynı fiyat olsun. Örn. tüm nargileler ₺500.</p>
+                    <div class="pt-row"><label class="pt-inp"><span>₺</span><input id="ptSet" inputmode="decimal" placeholder="0,00" autocomplete="off"></label><button type="button" class="mbtn pri" data-op="set">Uygula</button></div>
+                  </div>
+                  <div class="pt-card">
+                    <h4><i>2</i> Yüzde zam / indirim</h4>
+                    <p>Seçili ürünlerin mevcut fiyatına oransal artış veya düşüş uygular.</p>
+                    <div class="seg mini" data-dirgrp="pct"><button type="button" class="on" data-dir="1">▲ Zam</button><button type="button" data-dir="-1">▼ İndirim</button></div>
+                    <div class="pt-row"><label class="pt-inp"><span>%</span><input id="ptPct" inputmode="decimal" placeholder="10" autocomplete="off"></label><button type="button" class="mbtn pri" data-op="pct">Uygula</button></div>
+                  </div>
+                  <div class="pt-card">
+                    <h4><i>3</i> Tutar ekle / çıkar</h4>
+                    <p>Seçili ürünlerin fiyatına sabit bir TL tutarı ekler veya çıkarır.</p>
+                    <div class="seg mini" data-dirgrp="amt"><button type="button" class="on" data-dir="1">＋ Ekle</button><button type="button" data-dir="-1">－ Çıkar</button></div>
+                    <div class="pt-row"><label class="pt-inp"><span>₺</span><input id="ptAmt" inputmode="decimal" placeholder="25" autocomplete="off"></label><button type="button" class="mbtn pri" data-op="amt">Uygula</button></div>
+                  </div>
+                </div>
+                <div class="pt-foot"><label for="ptRound">Yuvarlama (2. ve 3. araç için):</label>
+                  <select id="ptRound"><option value="0">Kuruşlu bırak</option><option value="1">En yakın 1 ₺</option><option value="5">En yakın 5 ₺</option><option value="10">En yakın 10 ₺</option></select>
+                </div>
+              </div>
+
+              <div class="product-list" id="productGrid"></div>
+
+              <div class="pbar" id="priceBar">
+                <div class="pb-info" id="pbInfo"></div>
+                <button type="button" class="mbtn" id="pbReset">Değişiklikleri Sıfırla</button>
+                <button type="button" class="mbtn pri" id="pbSave">✔ Fiyatları Güncelle</button>
+                <b id="pbCount" style="display:none">0</b>
+              </div>
+            </div>
+          </div>
+          <div class="mo-card">
+            <div class="pi" style="font-size:26px">👁️</div>
+            <div class="mo-txt"><b>Sadece menü modu</b><span id="moState">Müşteri QR menüde sipariş veremez.</span></div>
+            <button class="mo-sw" id="btnMenuOnly" role="switch" aria-checked="false" aria-label="Sadece menü modu"></button>
+          </div>
+        </div>
+
+        <!-- BIRIMLER -->
+        <div class="screen" id="screen-birimler">
+          <div class="panel-card">
+            <div class="panel-head"><div class="pi">📖</div><div><h2>Birimler</h2><p>Ürün ve reçetelerde kullanılan ölçü birimleri</p></div><button class="btn-mini btn-add-item">+ Birim Ekle</button></div>
+            <div class="plist">
+              <div class="prow"><span class="pic">•</span><div class="pmain"><b>Adet</b></div></div>
+              <div class="prow"><span class="pic">•</span><div class="pmain"><b>Gram (gr)</b></div></div>
+              <div class="prow"><span class="pic">•</span><div class="pmain"><b>Kilogram (kg)</b></div></div>
+              <div class="prow"><span class="pic">•</span><div class="pmain"><b>Litre (lt)</b></div></div>
+              <div class="prow"><span class="pic">•</span><div class="pmain"><b>Mililitre (ml)</b></div></div>
+              <div class="prow"><span class="pic">•</span><div class="pmain"><b>Porsiyon</b></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ÖZELLİKLER -->
+        <div class="screen" id="screen-ozellikler">
+          <div class="panel-card">
+            <div class="panel-head"><div class="pi">☰</div><div><h2>Özellikler</h2><p>Siparişe eklenebilen ürün notları</p></div><button class="btn-mini btn-add-item">+ Özellik Ekle</button></div>
+            <div class="plist">
+              <div class="prow"><span class="pic">•</span><div class="pmain"><b>Soğansız</b></div></div>
+              <div class="prow"><span class="pic">•</span><div class="pmain"><b>Az Pişmiş</b></div></div>
+              <div class="prow"><span class="pic">•</span><div class="pmain"><b>Ekstra Soslu</b></div></div>
+              <div class="prow"><span class="pic">•</span><div class="pmain"><b>Buzsuz</b></div></div>
+              <div class="prow"><span class="pic">•</span><div class="pmain"><b>Şekersiz</b></div></div>
+              <div class="prow"><span class="pic">•</span><div class="pmain"><b>Acılı</b></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- KDV ORANLARI -->
+        <div class="screen" id="screen-kdv">
+          <div class="panel-card">
+            <div class="panel-head"><div class="pi">%</div><div><h2>Kdv Oranları</h2><p>Ürünlere atanabilecek vergi oranları — örnek değerler</p></div><button class="btn-mini btn-add-item">+ Oran Ekle</button></div>
+            <div class="plist">
+              <div class="prow"><span class="pic">%</span><div class="pmain"><b>%1</b><span>Temel gıda</span></div><span class="pval tag">Varsayılan değil</span></div>
+              <div class="prow"><span class="pic">%</span><div class="pmain"><b>%10</b><span>Standart yeme-içme</span></div><span class="pval tag">Varsayılan</span></div>
+              <div class="prow"><span class="pic">%</span><div class="pmain"><b>%20</b><span>Genel oran</span></div><span class="pval tag">Varsayılan değil</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- İNDİRİMLER -->
+        <div class="screen" id="screen-indirimler">
+          <div class="panel-card">
+            <div class="panel-head"><div class="pi">🏷️</div><div><h2>İndirimler</h2><p>Ödeme sırasında uygulanabilen ön tanımlı indirimler</p></div><button class="btn-mini btn-add-item">+ İndirim Ekle</button></div>
+            <div class="plist">
+              <div class="prow"><span class="pic">🏷️</span><div class="pmain"><b>Personel İndirimi</b></div><span class="pval">%10</span></div>
+              <div class="prow"><span class="pic">🏷️</span><div class="pmain"><b>Öğrenci İndirimi</b></div><span class="pval">%15</span></div>
+              <div class="prow"><span class="pic">🏷️</span><div class="pmain"><b>Hoşgeldin İndirimi</b></div><span class="pval">₺50,00</span></div>
+              <div class="prow"><span class="pic">🏷️</span><div class="pmain"><b>Kampanya İndirimi</b></div><span class="pval">%20</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MUTFAK GRUPLARI -->
+        <div class="screen" id="screen-mutfakgruplari">
+          <div class="def-card">
+            <div class="def-head">
+              <div class="di">📄</div>
+              <div><h2>Mutfak Grubu Tanımları</h2>
+                <p>Bu ekranda işletmenizdeki mutfak grupları (ör. mutfak, bar, fırın, nargile) tanımlanır. Daha sonra <span class="hl">Menü/Ürünler</span> ekranında ilgili ürün seçilerek, tanımlanan mutfak grubu atanır. (örneğin, 'İçecek' adında bir mutfak grubu tanımlanıp kola ürününün mutfak grubu 'İçecek' olarak güncellenirse, kola siparişi içecek bölümündeki ekrana veya yazıcıya gönderilir.)</p>
+              </div>
+              <button class="btn-mini" id="btnYeniMutfakGrubu">＋ Yeni</button>
+            </div>
+          </div>
+          <div class="info-box">
+            Tüm mutfak gruplarında varsayılan <b>Mutfak Durumu 'Hazırlanıyor ve Hazırlandı'</b> olarak atanmıştır.<br>
+            Eğer mutfakta pişirme ve hazırlama aşamaları varsa düzenle bölümünden bu kısımları da dahil edebilirsiniz.
+          </div>
+          <div class="def-table">
+            <div class="dt-head"><div class="dt-col" style="flex:2;">GRUP ADI</div><div class="dt-col" style="flex:2;">MUTFAK DURUMU</div><div class="dt-col" style="flex:1; text-align:right;">İŞLEMLER</div></div>
+            <div id="mutfakRows"></div>
+          </div>
+        </div>
+
+        <!-- MÜŞTERİLER -->
+        <div class="screen" id="screen-musteriler">
+          <div class="def-card">
+            <div class="def-head">
+              <div class="di">👥</div>
+              <div><h2>Müşteriler</h2><p id="custSummary">Müşteri Sayısı : 0&nbsp;&nbsp;&nbsp;Toplam Bakiye : ₺0,00</p></div>
+            </div>
+            <div class="link-row" style="margin-top:18px;">
+                            <span class="link-btn" id="btnMusteriIndir">↓ İndir</span>
+              <button class="btn-mini" id="btnMusteriEkle">＋ Ekle</button>
+            </div>
+            <div class="cust-toolbar">
+              <div class="cust-search">🔍<input id="custSearchInput" placeholder="Müşteri Arama"></div>
+              
+            </div>
+          </div>
+          <div class="def-table">
+            <div class="dt-head">
+              <div class="dt-col dt-sort" data-sort="no" style="flex:0.6;">No ⇅</div>
+              <div class="dt-col dt-sort" data-sort="name" style="flex:1.6;">Ad Soyad ⇅</div>
+              <div class="dt-col" style="flex:1.4;">Telefon</div>
+              <div class="dt-col" style="flex:1.6;">Adres</div>
+              <div class="dt-col" style="flex:1.2;">Açık Hesap</div>
+              <div class="dt-col dt-sort" data-sort="balance" style="flex:1; text-align:right;">Bakiye ⇅</div>
+              <div class="dt-col" style="flex:1.4;text-align:right;">İşlem</div>
+            </div>
+            <div id="custRows"></div>
+            </div>
+        </div>
+
+        <!-- ÖDENMEZLER -->
+        <div class="screen" id="screen-odenmezler">
+          <div class="panel-card">
+            <div class="panel-head"><div class="pi">🚫</div><div><h2>Ödenmezler</h2><p>Ücretsiz düşülebilecek ikram / zayi gerekçeleri</p></div><button class="btn-mini btn-add-item">+ Gerekçe Ekle</button></div>
+            <div class="plist">
+              <div class="prow"><span class="pic">🚫</span><div class="pmain"><b>Personel Yemeği</b></div></div>
+              <div class="prow"><span class="pic">🚫</span><div class="pmain"><b>İkram</b></div></div>
+              <div class="prow"><span class="pic">🚫</span><div class="pmain"><b>Zayi / Fire</b></div></div>
+              <div class="prow"><span class="pic">🚫</span><div class="pmain"><b>Yönetici İkramı</b></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SİPARİŞ (order type) -->
+        <div class="screen" id="screen-paketler">
+          <div class="panel-card">
+            <div class="panel-head"><div class="pi">📦</div><div><h2>Paket / Gel-Al</h2><p>Her sipariş kendi adisyonunu açar</p></div><button class="btn-mini" id="btnYeniExt">＋ Yeni Sipariş</button></div>
+            <div class="sm-switch" style="margin:8px 0 14px;width:fit-content;"><div class="sm-switch-btn active" id="pkTabPaket">📦 Paket</div><div class="sm-switch-btn" id="pkTabGelal">🛍️ Gel-Al</div></div>
+            <div class="plist" id="pkList"></div>
+          </div>
+        </div>
+
+        <!-- SİPARİŞ > MASA (operational Bölgeler / Siparişler screen) -->
+        <div class="screen" id="screen-siparis-masa">
+          <div class="sm-toolbar">
+            <div class="sm-switch">
+              <div class="sm-switch-btn active" id="smTabBolgeler">▦ Bölgeler</div>
+              <div class="sm-switch-btn" id="smTabSiparisler">🧾 Siparişler</div>
+            </div>
+            <div class="sm-icons">
+              <span class="sm-ic" id="smIconFull" title="Tam ekran masa görünümü">⛶</span>
+              <span class="sm-size" id="smSizeBtns"><span class="sm-ic" id="smSzMinus" title="Masaları küçült">−</span><span class="sm-ic" id="smSzPlus" title="Masaları büyüt">+</span></span>
+              <span class="sm-ic" id="smIconWifi" title="Bağlantı durumu"><i class="cdot" id="smConnDot"></i>📶</span>
+                            <span class="sm-ic" id="smIconRefresh" title="Yenile">↻</span>
+                          </div>
+          </div>
+
+          <div id="smBolgelerView">
+            <div class="region-tabs" id="smRegionTabs"></div>
+            <div class="sm-pill-grid" id="smTableGrid"></div>
+          </div>
+
+          <div id="smSiparislerView" style="display:none;">
+            <div class="sm-search">🔍<input id="smOrderSearch" placeholder="Müşteri adı veya sipariş no ile arama..."></div>
+            <div class="sm-kanban">
+              
+              <div class="sm-col">
+                <div class="sm-col-head sm-col-prep" id="smPrepHead">👨‍🍳 Hazırlanıyor (0)</div>
+                <div class="sm-col-body" id="smPrepBody"></div>
+              </div>
+              <div class="sm-col">
+                <div class="sm-col-head sm-col-wait" id="smWaitHead">🕐 Bekleyen Müşteri Siparişleri (0)</div><div class="sm-col-body" id="smWaitBody"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- GİDER / MASRAF İŞLEMLERİ -->
+        <div class="screen" id="screen-gider">
+          <div class="panel-card">
+            <div class="panel-head"><div class="pi">📉</div><div><h2>Gider / Masraf İşlemleri</h2><p>Toplam: <b id="giderToplam">₺0,00</b></p></div><button class="btn-mini" id="btnGiderEkle">＋ Gider Ekle</button></div>
+            <div class="plist" id="giderList"></div>
+          </div>
+        </div>
+
+        <div class="screen" id="screen-ai">
+          <div class="panel-card"><div class="panel-head"><div class="pi">✨</div><div><h2>Yapay Zekâ Asistanı</h2><p>Gemini destekli yardımcılar. Çıktılar öneridir; uygulamadan önce kontrol edin.</p></div></div><div id="aiStatus" class="ai-st"></div><div class="ai-row"><button class="btn-mini" id="aiTestBtn">🔧 Bağlantıyı test et</button></div><div class="ai-out" id="aiTestOut" style="display:none"></div></div>
+          <div class="panel-card"><div class="panel-head"><div class="pi">📊</div><div><h2>Satış özeti</h2><p>Satış verinizi yorumlar, dikkat çeken noktaları ve önerileri yazar.</p></div></div>
+            <div class="ai-row"><select id="aiSumDays"><option value="1">Bugün</option><option value="7">Son 7 gün</option><option value="30">Son 30 gün</option></select><button class="btn-mini" id="aiSumBtn">✨ Özet çıkar</button></div><div class="ai-out" id="aiSumOut" style="display:none"></div></div>
+          <div class="panel-card"><div class="panel-head"><div class="pi">✍️</div><div><h2>Menü açıklaması yazımı</h2><p>Açıklaması boş ürünler için taslak yazar (her seferinde en fazla 40 ürün). Alerjenler yalnızca isim bazlı tahmindir.</p></div></div>
+            <div class="ai-row"><button class="btn-mini" id="aiDescBtn">✨ Boş açıklamaları yaz</button></div><div id="aiDescOut"></div></div>
+          <div class="panel-card"><div class="panel-head"><div class="pi">🌍</div><div><h2>Menü çevirisi</h2><p>Kategori, ürün adı ve açıklamaları çevirir; müşteri menüsünde dil düğmeleri görünür.</p></div></div>
+            <div class="ai-row"><select id="aiTrLang"><option value="en">İngilizce</option><option value="de">Almanca</option><option value="ru">Rusça</option><option value="ar">Arapça</option><option value="fr">Fransızca</option></select><button class="btn-mini" id="aiTrBtn">✨ Menüyü çevir</button></div><div id="aiTrList"></div></div>
+          <div class="panel-card"><div class="panel-head"><div class="pi">📦</div><div><h2>Stok &amp; fiyat önerisi</h2><p>Son 14 günün satışına bakarak hazırlık miktarı ve fiyat fikirleri verir (maliyet verisi olmadığından kesin değildir).</p></div></div>
+            <div class="ai-row"><button class="btn-mini" id="aiStkBtn">✨ Öneri getir</button></div><div class="ai-out" id="aiStkOut" style="display:none"></div></div>
+          <div class="panel-card"><div class="panel-head"><div class="pi">📷</div><div><h2>Fotoğraftan veri girişi</h2><p>Fiş, fatura veya el yazısı listenin fotoğrafını okur; kontrol edip gider olarak ekleyebilirsiniz.</p></div></div>
+            <div class="ai-row"><input type="file" accept="image/*" id="aiPhoto"><button class="btn-mini" id="aiPhotoBtn">✨ Oku</button></div><div id="aiPhotoOut"></div></div>
+          <div class="panel-card"><div class="panel-head"><div class="pi">💬</div><div><h2>Müşteri asistanı &amp; sipariş notu</h2><p>Müşteri menüsünde “💬 Menü Asistanı” düğmesi, sipariş notlarında ise “✨” düzenleme düğmesi otomatik çalışır. Müşteri başına oturumda en fazla 10 soru sorulabilir.</p></div></div></div>
+        </div>
+
+        <!-- ZAYİ İŞLEMLERİ -->
+        <div class="screen" id="screen-zayi">
+          <div class="panel-card">
+            <div class="panel-head"><div class="pi">📈</div><div><h2>Zayi İşlemleri</h2><p>Fire olarak düşülen ürün ve malzemeler</p></div><button class="btn-mini btn-add-item">+ Zayi Ekle</button></div>
+            <div class="plist">
+            </div>
+          </div>
+        </div>
+
+        <!-- ÜRÜN SATIŞ RAPORU -->
+        <div class="screen" id="screen-stok">
+          <div class="panel-card stk2">
+            <div class="panel-head"><div class="pi">📦</div><div><h2>Stok</h2><p id="stkSub">Ürünlerinizin canlı adet stoğu</p></div>
+              <div class="stk-head-btns" id="stkHeadLive"><button class="btn-mini" data-sa="vis">⚙ Görünürlük</button><button class="sk-primary" data-sa="add" style="padding:8px 16px">＋ Stok ekle</button></div>
+              <div class="stk-head-btns" id="stkHeadAdv" style="display:none"><button class="btn-mini" data-a="in">＋ Mal Kabul</button><button class="btn-mini" data-a="bulk">Toplu Giriş</button><button class="btn-mini" data-a="fire">Fire İşle</button><button class="btn-mini" data-a="new">＋ Malzeme</button></div></div>
+            <div class="sk-seg" id="stkModes"><button class="on" data-sm="live">Ürün stoğu</button><button data-sm="log">Hareketler</button><button data-sm="adv">Malzeme &amp; reçete</button></div>
+            <div id="stkLive"></div>
+            <div id="stkAdv" style="display:none">
+              <div class="tabs" id="stkTabs"><div class="tab active" data-t="stok">Stok</div><div class="tab" data-t="recete">Reçeteler ve maliyet</div><div class="tab" data-t="rapor">Tüketim raporu</div><div class="tab" data-t="hareket">Hareketler</div></div>
+              <div id="stkBody"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="screen" id="screen-rapor-urun">
+          <div class="panel-card">
+            <div class="panel-head"><div class="pi">📈</div><div><h2>Ürün Satış Raporu</h2><p>En çok satan ürünler — seçilen aralık (boşsa bugün)</p></div></div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0 12px"><label>Başlangıç <input type="date" id="urunFrom"></label><label>Bitiş <input type="date" id="urunTo"></label><button class="btn-mini" id="urunCsv">⬇ CSV</button></div>
+            <div id="repUrun"></div>
+</div>
+        </div>
+
+        <!-- GÜN SONU RAPORU -->
+        <div class="screen" id="screen-rapor-gunsonu">
+          <div class="panel-card">
+            <div class="panel-head"><div class="pi">💲</div><div><h2>Gün Sonu Raporu</h2><p>Bugünkü kasa dökümü</p></div><button class="btn-mini" id="btnGsCsv">⬇ CSV</button><button class="btn-mini" id="btnCloseDay">Günü Kapat</button></div>
+            <div class="plist">
+              <div class="prow"><span class="pic">💵</span><div class="pmain"><b>Nakit</b></div><span class="pval" id="gsCashValue">₺0,00</span></div>
+              <div class="prow"><span class="pic">💳</span><div class="pmain"><b>Kart / Diğer</b></div><span class="pval" id="gsCardValue">₺0,00</span></div>
+              <div class="prow"><span class="pic">👥</span><div class="pmain"><b>Ağırlanan misafir</b></div><span class="pval" id="gsGuestValue">0</span></div>
+              <div class="prow"><span class="pic">Σ</span><div class="pmain"><b>Toplam satış</b></div><span class="pval" id="gsTotalValue">₺0,00</span></div>
+              <div class="prow"><span class="pic">📒</span><div class="pmain"><b>Açık hesaba yazılan</b><span>Tahsil edilmedi, müşteri bakiyesine eklendi</span></div><span class="pval" id="gsOpen">₺0,00</span></div>
+              <div class="prow"><span class="pic">🚫</span><div class="pmain"><b>İkram / ödenmez</b></div><span class="pval" id="gsWaive">₺0,00</span></div>
+              <div class="prow"><span class="pic">%</span><div class="pmain"><b>Toplam KDV</b><span>Fiyatlara dahil</span></div><span class="pval" id="gsKdv">₺0,00</span></div>
+              <div class="prow"><span class="pic">📉</span><div class="pmain"><b>Bugünkü gider</b></div><span class="pval" id="gsExp">₺0,00</span></div>
+              <div class="prow"><span class="pic">💰</span><div class="pmain"><b>Cari tahsilat</b><span>Eski borçlardan alınan</span></div><span class="pval" id="gsCol">₺0,00</span></div>
+              <div class="prow"><span class="pic">✅</span><div class="pmain"><b>Net (satış − açık hesap − gider)</b></div><span class="pval" id="gsNet">₺0,00</span></div>
+            </div>
+          </div>
+          <div class="panel-card" style="margin-top:18px;">
+            <div class="panel-head"><div class="pi">🗓️</div><div><h2>Geçmiş Günler</h2><p>Günü kapat ile arşive alınan raporlar</p></div></div>
+            <div class="plist" id="repDays"></div>
+          </div>
+          <div class="panel-card" style="margin-top:18px;">
+            <div class="panel-head"><div class="pi">❌</div><div><h2>İptal Kayıtları</h2><p>Neden ve yetkili bilgisiyle iptal edilen adisyonlar</p></div></div>
+            <div class="plist" id="repCancel"></div>
+          </div>
+        </div>
+
+        <!-- CİRO TAKİBİ -->
+        <div class="screen" id="screen-ciro">
+          <div class="panel-card">
+            <div class="panel-head"><div class="pi">📈</div><div><h2>Ciro Takibi</h2><p>Günlük, aylık, yıllık veya seçtiğiniz tarih aralığında ciro, gider ve net kazanç</p></div><button class="btn-mini" id="ctCsv">⬇ CSV</button></div>
+            <div class="ct-pills" id="ctPills"></div>
+            <div class="ct-range">
+              <label>Başlangıç<input type="date" id="ctFrom"></label>
+              <label>Bitiş<input type="date" id="ctTo"></label>
+              <div class="ct-seg" id="ctSeg" role="group" aria-label="Gruplama"><button data-g="day">Günlük</button><button data-g="month">Aylık</button><button data-g="year">Yıllık</button></div>
+            </div>
+          </div>
+          <div class="ct-kpis" id="ctKpis"></div>
+          <div class="panel-card ct-bar">
+            <div class="panel-head"><div class="pi">📊</div><div><h2 id="ctChartTitle">Ciro</h2><p id="ctChartSub"></p></div></div>
+            <div class="ct-chart" id="ctChart"></div>
+          </div>
+          <div class="panel-card" style="margin-top:18px;">
+            <div class="panel-head"><div class="pi">🧾</div><div><h2>Dönem tablosu</h2><p>Grafikteki verinin tablo hali</p></div></div>
+            <div class="ct-tablewrap" id="ctTable"></div>
+          </div>
+        </div>
+
+        <!-- VARDİYA SATIŞ RAPORU -->
+        <div class="screen" id="screen-rapor-vardiya">
+          <div class="panel-card">
+            <div class="panel-head"><div class="pi">📄</div><div><h2>Vardiya Satış Raporu</h2><p>Vardiya bazlı satış özeti</p></div></div>
+            <div class="plist">
+              <div class="prow"><span class="pic">🌅</span><div class="pmain"><b>Sabah Vardiyası</b><span id="vSabahLbl">Gün başlangıcı – 15:00</span></div><span class="pval" id="vSabah">₺0,00</span></div>
+              <div class="prow"><span class="pic">🌙</span><div class="pmain"><b>Akşam Vardiyası</b><span id="vAksamLbl">15:00 – gün sonu</span></div><span class="pval" id="vAksam">₺0,00</span></div>
+            </div>
+          </div>
+          <div class="panel-card" style="margin-top:18px;">
+            <div class="panel-head"><div class="pi">👤</div><div><h2>Personel Bazlı Satış</h2><p>Siparişi (ürünü) giren personele göre</p></div></div>
+            <div class="plist" id="repUser"></div>
+          </div>
+        </div>
+
+        <!-- RESTAURANT İSTATİSTİKLERİ -->
+        <div class="screen" id="screen-rapor-istatistik">
+          <div class="panel-card">
+            <div class="panel-head"><div class="pi">◐</div><div><h2>Restaurant İstatistikleri</h2><p>Genel görünüm</p></div></div>
+            <div class="tile-grid">
+              <div class="tile"><div class="t-label">En yoğun saat</div><div class="t-value" id="stHour">—</div></div>
+              <div class="tile"><div class="t-label">En çok satan ürün</div><div class="t-value" id="stTop">—</div></div>
+              <div class="tile"><div class="t-label">Ortalama adisyon</div><div class="t-value" id="stAvg">₺0,00</div></div>
+              <div class="tile"><div class="t-label">Bugün misafir</div><div class="t-value" id="stGuests">0</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- FİRE RAPORU -->
+        <div class="screen" id="screen-rapor-fire">
+          <div class="panel-card">
+            <div class="panel-head"><div class="pi">🔥</div><div><h2>Fire Raporu</h2><p>Belirli tarih aralığındaki toplam fire</p></div></div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0 12px"><label>Başlangıç <input type="date" id="fireFrom"></label><label>Bitiş <input type="date" id="fireTo"></label><button class="btn-mini" id="fireCsv">⬇ CSV</button></div>
+            <div class="plist" id="repFire"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+  </template>
+
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="app.js?v=1"></script>
+</body>
+</html>
+                
